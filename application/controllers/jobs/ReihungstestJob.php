@@ -323,7 +323,7 @@ class ReihungstestJob extends CLI_Controller
 	 * @param string $bcc. Optional. BCC-Mailadress to send the Mails to
 	 * @param string $from. Optional. Sender-Mailadress shown to recipient
 	 */
-	public function remindApplicantsOfPlacementTest($degreeProgram, $bcc = null, $from = null)
+	public function remindApplicantsOfPlacementTest($degreeProgram, $from = null, $bcc = null)
 	{
 		// Encode Params
 		if ($bcc != '')
