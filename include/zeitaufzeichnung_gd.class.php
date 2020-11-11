@@ -30,6 +30,7 @@ class zeitaufzeichnung_gd extends basis_db
     public $insertvon;				    // varchar(32)
     public $updateamum;				    // timestamp
     public $updatevon;				    // varchar(32)
+	public $geteilte_pause;             // boolean
 
     /**
      * Constructor
@@ -68,6 +69,7 @@ class zeitaufzeichnung_gd extends basis_db
 				$this->updateamum = $row->updateamum;
 				$this->updatevon = $row->updatevon;
 				$this->selbstverwaltete_pause = $this->db_parse_bool($row->selbstverwaltete_pause);
+				$this->geteilte_pause = $this->db_parse_bool($row->geteilte_pause);
 				return true;
 			}
 			else
@@ -90,20 +92,23 @@ class zeitaufzeichnung_gd extends basis_db
     public function save()
     {
         if (is_string($this->uid) &&
-            is_string($this->studiensemester_kurzbz) &&
-            is_bool($this->selbstverwaltete_pause))
+            is_string($this->studiensemester_kurzbz))
         {
 			$qry = '
                 INSERT INTO campus.tbl_zeitaufzeichnung_gd (
                     uid,
                     studiensemester_kurzbz,
                     selbstverwaltete_pause,
-                    insertvon
+                    geteilte_pause,
+                    insertamum,
+                    insertvon                    
                 )
                 VALUES ('.
                     $this->db_add_param($this->uid). ', '.
                     $this->db_add_param($this->studiensemester_kurzbz). ', '.
-                    $this->db_add_param($this->selbstverwaltete_pause, FHC_BOOLEAN). ', '.
+                    $this->db_add_param($this->selbstverwaltete_pause, FHC_BOOLEAN, true). ', '.
+					$this->db_add_param($this->geteilte_pause, FHC_BOOLEAN, true). ', '.
+					$this->db_add_param(date_create()->format('Y-m-d H:i:s')). ', '.
                     $this->db_add_param($this->uid). '
                 );
             ';
@@ -123,5 +128,38 @@ class zeitaufzeichnung_gd extends basis_db
             $this->errormsg = 'Falsche Parameterübergabe';
             return false;
         }
+    }
+
+    public function update()
+    {
+	    if (is_string($this->uid) &&
+		    is_string($this->studiensemester_kurzbz))
+	    {
+		    $qry = '
+                UPDATE campus.tbl_zeitaufzeichnung_gd SET '.
+                'uid='.$this->db_add_param($this->uid).', '.
+			    'studiensemester_kurzbz='.$this->db_add_param($this->studiensemester_kurzbz).', '.
+			    'selbstverwaltete_pause='.$this->db_add_param($this->selbstverwaltete_pause, FHC_BOOLEAN).', '.
+			    'geteilte_pause='.$this->db_add_param($this->geteilte_pause, FHC_BOOLEAN).', '.
+			    'updateamum='.$this->db_add_param(date_create()->format('Y-m-d H:i:s')).', '.
+			    'updatevon='.$this->db_add_param($this->updatevon).' '.
+			    'WHERE zeitaufzeichnung_gd_id='.$this->db_add_param($this->zeitaufzeichnung_gd_id).';
+            ';
+
+		    if ($this->db_query($qry))
+		    {
+			    return true;
+		    }
+		    else
+		    {
+			    $this->errormsg = 'Fehler beim Update von Zeitaufzeichnung_gd';
+			    return false;
+		    }
+	    }
+	    else
+	    {
+		    $this->errormsg = 'Falsche Parameterübergabe';
+		    return false;
+	    }
     }
 }

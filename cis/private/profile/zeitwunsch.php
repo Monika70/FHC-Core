@@ -120,45 +120,124 @@ $ss->getNextStudiensemester();
 $next_ss = $ss->studiensemester_kurzbz;
 $current_ss = $ss->getakt();
 
-// Erklärung zu Pausen bei geteilten Arbeitszeiten speichern
+// Erklärung zu Selbstverwalteter Pausen bei geteilten Arbeitszeiten speichern
 if (isset($_GET['selbstverwaltete-pause-akt']) && !empty($_GET['submit-akt']))
 {
-    $selbstverwaltete_pause = ($_GET['selbstverwaltete-pause-akt'] == 'yes') ? true : false;
+	$selbstverwaltete_pause = ($_GET['selbstverwaltete-pause-akt'] == 'yes') ? true : false;
 
-    $zeitaufzeichnung_gd = new Zeitaufzeichnung_gd();
-    $zeitaufzeichnung_gd->uid = $uid;
-    $zeitaufzeichnung_gd->studiensemester_kurzbz = $current_ss;
-    $zeitaufzeichnung_gd->selbstverwaltete_pause = $selbstverwaltete_pause;
-	$za_gd = new Zeitaufzeichnung_gd();
-	$za_gd->load($uid, $current_ss);
-	if ($za_gd->uid)
+	$zeitaufzeichnung_gd = new Zeitaufzeichnung_gd();
+
+	if ($zeitaufzeichnung_gd->load($uid, $current_ss))
 	{
-		echo 'Bereits eingetragen';
+		//update
+		$zeitaufzeichnung_gd->selbstverwaltete_pause = $selbstverwaltete_pause;
+		$zeitaufzeichnung_gd->updatevon = $uid;
+		$zeitaufzeichnung_gd->update();
 	}
-    else if (!$zeitaufzeichnung_gd->save())
-    {
-        echo $zeitaufzeichnung_gd->errormsg;
-    }
-
+	else
+	{
+		//insert
+		$zeitaufzeichnung_gd->uid = $uid;
+		$zeitaufzeichnung_gd->studiensemester_kurzbz = $current_ss;
+		$zeitaufzeichnung_gd->selbstverwaltete_pause = $selbstverwaltete_pause;
+		if ($zeitaufzeichnung_gd->save())
+		{
+			echo 'Erklärung zu geiteilten Arbeitsziet gespeichert';
+		}
+		else
+		{
+			echo $zeitaufzeichnung_gd->errormsg;
+		}
+	}
 }
 if (isset($_GET['selbstverwaltete-pause']) && !empty($_GET['submit']))
 {
-    $selbstverwaltete_pause = ($_GET['selbstverwaltete-pause'] == 'yes') ? true : false;
+	$selbstverwaltete_pause = ($_GET['selbstverwaltete-pause'] == 'yes') ? true : false;
 
-    $zeitaufzeichnung_gd = new Zeitaufzeichnung_gd();
-    $zeitaufzeichnung_gd->uid = $uid;
-    $zeitaufzeichnung_gd->studiensemester_kurzbz = $next_ss;
-    $zeitaufzeichnung_gd->selbstverwaltete_pause = $selbstverwaltete_pause;
-	$za_gd = new Zeitaufzeichnung_gd();
-	$za_gd->load($uid, $next_ss);
-	if ($za_gd->uid)
+	$zeitaufzeichnung_gd = new Zeitaufzeichnung_gd();
+
+	if ($zeitaufzeichnung_gd->load($uid, $next_ss))
 	{
-		echo 'Bereits eingetragen';
+		//update
+		$zeitaufzeichnung_gd->selbstverwaltete_pause = $selbstverwaltete_pause;
+		$zeitaufzeichnung_gd->updatevon = $uid;
+		$zeitaufzeichnung_gd->update();
 	}
-    else if (!$zeitaufzeichnung_gd->save())
-    {
-        echo $zeitaufzeichnung_gd->errormsg;
-    }
+	else
+	{
+		//insert
+		$zeitaufzeichnung_gd->uid = $uid;
+		$zeitaufzeichnung_gd->studiensemester_kurzbz = $next_ss;
+		$zeitaufzeichnung_gd->selbstverwaltete_pause = $selbstverwaltete_pause;
+		if ($zeitaufzeichnung_gd->save())
+		{
+			echo 'Erklärung zu geiteilten Arbeitsziet gespeichert';
+		}
+		else
+		{
+			echo $zeitaufzeichnung_gd->errormsg;
+		}
+	}
+}
+
+// Erklärung zu Geteilter Pausen speichern
+if (isset($_GET['geteilte-pause-akt']) && !empty($_GET['submit-gp-akt']))
+{
+	$geteilte_pause = ($_GET['geteilte-pause-akt'] == 'yes') ? true : false;
+
+	$zeitaufzeichnung_gd = new Zeitaufzeichnung_gd();
+
+	if ($zeitaufzeichnung_gd->load($uid, $current_ss))
+	{
+		//update
+		$zeitaufzeichnung_gd->geteilte_pause = $geteilte_pause;
+		$zeitaufzeichnung_gd->updatevon = $uid;
+		$zeitaufzeichnung_gd->update();
+	}
+	else
+	{
+		//insert
+		$zeitaufzeichnung_gd->uid = $uid;
+		$zeitaufzeichnung_gd->studiensemester_kurzbz = $current_ss;
+		$zeitaufzeichnung_gd->geteilte_pause = $geteilte_pause;
+		if ($zeitaufzeichnung_gd->save())
+		{
+			echo 'Erklärung zu selbstverwalteter Pause gespeichert';
+		}
+		else
+		{
+			echo $zeitaufzeichnung_gd->errormsg;
+		}
+	}
+}
+if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
+{
+	$geteilte_pause = ($_GET['geteilte-pause'] == 'yes') ? true : false;
+
+	$zeitaufzeichnung_gd = new Zeitaufzeichnung_gd();
+
+	if ($zeitaufzeichnung_gd->load($uid, $next_ss))
+	{
+		//update
+		$zeitaufzeichnung_gd->geteilte_pause = $geteilte_pause;
+		$zeitaufzeichnung_gd->updatevon = $uid;
+		$zeitaufzeichnung_gd->update();
+	}
+	else
+	{
+		//insert
+		$zeitaufzeichnung_gd->uid = $uid;
+		$zeitaufzeichnung_gd->studiensemester_kurzbz = $next_ss;
+		$zeitaufzeichnung_gd->geteilte_pause = $geteilte_pause;
+		if ($zeitaufzeichnung_gd->save())
+		{
+			echo 'Erklärung zu selbstverwalteter Pause gespeichert';
+		}
+		else
+		{
+			echo $zeitaufzeichnung_gd->errormsg;
+		}
+	}
 
 }
 
@@ -213,7 +292,7 @@ if (isset($_GET['selbstverwaltete-pause']) && !empty($_GET['submit']))
 					echo $p->t('zeitwunsch/geteilteArbeitszeit');
 					$gd = new zeitaufzeichnung_gd();
 					$gd->load($uid, $current_ss);
-					if ( ! $gd->uid )
+					if ( ! $gd->selbstverwaltete_pause )
 					{
 						echo '<br><br><h3>Zustimmung für '.$current_ss.': ';
 						echo '<input type="radio" name="selbstverwaltete-pause-akt" value="yes">ja';
@@ -227,7 +306,7 @@ if (isset($_GET['selbstverwaltete-pause']) && !empty($_GET['submit']))
 					}
 					$gd = new zeitaufzeichnung_gd();
 					$gd->load($uid, $next_ss);
-					if ( ! $gd->uid )
+					if ( ! $gd->selbstverwaltete_pause )
 					{
 						echo '<h3>Zustimmung für '.$next_ss.': ';
 						echo '<input type="radio" name="selbstverwaltete-pause" value="yes">ja';
@@ -244,9 +323,54 @@ if (isset($_GET['selbstverwaltete-pause']) && !empty($_GET['submit']))
 
 				</p>
 			</form>
-		<br><hr>
-		</td>
-	</tr>
+            <br><hr>
+            </td>
+        </tr>
+    <!--Erklärung zu geteilten Pausen-->
+    <tr>
+        <td>
+            <h1>Zustimmung zur Verplanung in geteilter Pause</h1>
+
+            <form action="">
+                <p>
+					<?php
+					echo $p->t('zeitwunsch/geteilteArbeitszeit');
+					$gd = new zeitaufzeichnung_gd();
+					$gd->load($uid, $current_ss);
+					if ( ! $gd->geteilte_pause )
+					{
+						echo '<br><br><h3>Zustimmung für '.$current_ss.': ';
+						echo '<input type="radio" name="geteilte-pause-akt" value="yes">ja';
+						echo '<input type="radio" name="geteilte-pause-akt" value="no">nein';
+						echo '</h3><br><br><input type="submit" name="submit-gp-akt" value="'.$p->t('global/speichern').'" style="float: right"><br>';
+					}
+					else
+					{
+						$zustimmung = ($gd->geteilte_pause) ? ' erteilt' : 'abgelehnt';
+						echo '<br><br><h3>Zustimmung für '.$current_ss.': '.$zustimmung.' am '.$datum_obj->formatDatum($gd->insertamum,'d.m.Y H:i:s').'</h3>';
+					}
+					$gd = new zeitaufzeichnung_gd();
+					$gd->load($uid, $next_ss);
+					if ( ! $gd->geteilte_pause )
+					{
+						echo '<h3>Zustimmung für '.$next_ss.': ';
+						echo '<input type="radio" name="geteilte-pause" value="yes">ja';
+						echo '<input type="radio" name="geteilte-pause" value="no">nein';
+						echo '</h3><br><br><input type="submit" name="submit-gp" value="'.$p->t('global/speichern').'" style="float: right"><br>';
+					}
+					else
+					{
+						$zustimmung = ($gd->geteilte_pause) ? ' erteilt' : 'abgelehnt';
+						echo '<h3>Zustimmung für '.$next_ss.': '.$zustimmung.' am '.$datum_obj->formatDatum($gd->insertamum,'d.m.Y H:i:s').'</h3>';
+					}
+					//var_dump($gd);
+					?>
+
+                </p>
+            </form>
+            <br><hr>
+            </td>
+        </tr>
 <?php endif; ?>
 	  <tr>
 	    <td>
