@@ -292,7 +292,7 @@ if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
 					echo $p->t('zeitwunsch/geteilteArbeitszeit');
 					$gd = new zeitaufzeichnung_gd();
 					$gd->load($uid, $current_ss);
-					if ( ! $gd->selbstverwaltete_pause )
+					if ( is_null($gd->selbstverwaltete_pause) || $gd->selbstverwaltete_pause === '' )
 					{
 						echo '<br><br><h3>Zustimmung für '.$current_ss.': ';
 						echo '<input type="radio" name="selbstverwaltete-pause-akt" value="yes">ja';
@@ -306,7 +306,7 @@ if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
 					}
 					$gd = new zeitaufzeichnung_gd();
 					$gd->load($uid, $next_ss);
-					if ( ! $gd->selbstverwaltete_pause )
+					if ( is_null($gd->selbstverwaltete_pause) || $gd->selbstverwaltete_pause === '' )
 					{
 						echo '<h3>Zustimmung für '.$next_ss.': ';
 						echo '<input type="radio" name="selbstverwaltete-pause" value="yes">ja';
@@ -337,7 +337,7 @@ if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
 					echo $p->t('zeitwunsch/geteilteArbeitszeit');
 					$gd = new zeitaufzeichnung_gd();
 					$gd->load($uid, $current_ss);
-					if ( ! $gd->geteilte_pause )
+					if ( is_null($gd->geteilte_pause) || $gd->geteilte_pause === '')
 					{
 						echo '<br><br><h3>Zustimmung für '.$current_ss.': ';
 						echo '<input type="radio" name="geteilte-pause-akt" value="yes">ja';
@@ -351,7 +351,7 @@ if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
 					}
 					$gd = new zeitaufzeichnung_gd();
 					$gd->load($uid, $next_ss);
-					if ( ! $gd->geteilte_pause )
+					if ( is_null($gd->geteilte_pause) || $gd->geteilte_pause === '')
 					{
 						echo '<h3>Zustimmung für '.$next_ss.': ';
 						echo '<input type="radio" name="geteilte-pause" value="yes">ja';
