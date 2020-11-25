@@ -184,6 +184,7 @@ if ($anz>0)
 		}
 
 		$selbstverwaltete_pause = false;
+		$geteilte_pause = false;
 		foreach ($l->lektor_uid as $lktuid)
 		{
 			$gd = new zeitaufzeichnung_gd();
@@ -192,6 +193,7 @@ if ($anz>0)
 				if ($gd->selbstverwaltete_pause)
 				{
 					$selbstverwaltete_pause = true;
+					($gd->geteilte_pause) ? $geteilte_pause=true : $geteilte_pause=false;
 					break;
 				}
 			}
@@ -298,6 +300,7 @@ if ($anz>0)
 		}
 
 		$fixangestellt_info = '';
+		$geteilte_pause_info = '';
 		if($fixangestellt)
 		{
 			if($selbstverwaltete_pause)
@@ -306,6 +309,11 @@ if ($anz>0)
 			}
 			else
 				$fixangestellt_info = 'FIX';
+
+			if($geteilte_pause)
+            {
+                $geteilte_pause_info = 'GP';
+            }
 		}
 		else
 			$fixangestellt_info = 'EXT';
@@ -369,6 +377,7 @@ if ($anz>0)
 					<LVA:unr>'.$l->unr.'</LVA:unr>
 					<LVA:lektor>'.$lektor.'</LVA:lektor>
 					<LVA:fixangestellt_info>'.$fixangestellt_info.'</LVA:fixangestellt_info>
+					<LVA:geteilte_pause_info>'.$geteilte_pause_info.'</LVA:geteilte_pause_info>
 					<LVA:lehrfach_id>'.$l->lehrfach_id.'</LVA:lehrfach_id>
 					<LVA:studiengang_kz>'.$l->stg_kz[0].'</LVA:studiengang_kz>
 					<LVA:fachbereich_kurzbz>'.$l->fachbereich.'</LVA:fachbereich_kurzbz>

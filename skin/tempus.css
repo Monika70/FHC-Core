@@ -10,6 +10,14 @@ label.tempus_lektor_fix_info
 	font-size: x-small
 }
 
+label.tempus_geteilte_pause_info
+{
+	font-weight: bold;
+	padding-left:2px;
+	padding-right:2px;
+	font-size: x-small
+}
+
 label.tempus_vertrag_info
 {
 	border-top: 1px solid black;
