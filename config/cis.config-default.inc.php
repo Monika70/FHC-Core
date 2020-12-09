@@ -179,6 +179,8 @@ define('MAIL_CIS','invalid@technikum-wien.at');
 define('MAIL_INTERNATIONAL','invalid@technikum-wien.at');
 //Ansprechpartner fuer Outgoing
 define('MAIL_INTERNATIONAL_OUTGOING', 'invalid@technikum-wien.at');
+//Betriebsratmail
+define('MAIL_BETRIEBSRAT', 'invalid@technikum-wien.at');
 
 define('ANZAHL_PREINTERESSENT','5');
 
