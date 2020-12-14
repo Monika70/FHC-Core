@@ -4415,6 +4415,21 @@ if($result = $db->db_query("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE
 	}
 }
 
+
+// campus.tbl_zeitaufzeichnung_gd zusätzliche Spalte "geteilte_pause"
+if(!$result = @$db->db_query("SELECT geteilte_pause FROM campus.tbl_zeitaufzeichnung_gd LIMIT 1"))
+{
+	$qry = "
+	ALTER TABLE campus.tbl_zeitaufzeichnung_gd ADD COLUMN geteilte_pause boolean;
+	ALTER TABLE campus.tbl_zeitaufzeichnung_gd ALTER COLUMN selbstverwaltete_pause DROP NOT NULL;";
+
+	if(!$db->db_query($qry))
+		echo '<strong>wawi.tbl_betriebsmitteltyp '.$db->db_last_error().'</strong><br>';
+	else
+		echo '<br>Spalte geteilte_pause in campus.tbl_zeitaufzeichnung_gd hinzugefügt,
+		NN Constraint von Spalte selbstverwaltete_pause entfernt <br>';
+}
+
 // *** Pruefung und hinzufuegen der neuen Attribute und Tabellen
 echo '<H2>Pruefe Tabellen und Attribute!</H2>';
 
@@ -4502,7 +4517,7 @@ $tabellen=array(
 	"campus.tbl_veranstaltung"  => array("veranstaltung_id","titel","beschreibung","veranstaltungskategorie_kurzbz","inhalt","start","ende","freigabevon","freigabeamum","updateamum","updatevon","insertamum","insertvon"),
 	"campus.tbl_veranstaltungskategorie"  => array("veranstaltungskategorie_kurzbz","bezeichnung","bild","farbe"),
 	"campus.tbl_zeitaufzeichnung"  => array("zeitaufzeichnung_id","uid","aktivitaet_kurzbz","projekt_kurzbz","start","ende","beschreibung","oe_kurzbz_1","oe_kurzbz_2","insertamum","insertvon","updateamum","updatevon","ext_id","service_id","kunde_uid","projektphase_id"),
-	"campus.tbl_zeitaufzeichnung_gd"  => array("zeitaufzeichnung_gd_id","uid","studiensemester_kurzbz","selbstverwaltete_pause","insertamum","insertvon","updateamum","updatevon"),
+	"campus.tbl_zeitaufzeichnung_gd"  => array("zeitaufzeichnung_gd_id","uid","studiensemester_kurzbz","selbstverwaltete_pause","insertamum","insertvon","updateamum","updatevon","geteilte_pause"),
 	"campus.tbl_zeitsperre"  => array("zeitsperre_id","zeitsperretyp_kurzbz","mitarbeiter_uid","bezeichnung","vondatum","vonstunde","bisdatum","bisstunde","vertretung_uid","updateamum","updatevon","insertamum","insertvon","erreichbarkeit_kurzbz","freigabeamum","freigabevon"),
 	"campus.tbl_zeitsperretyp"  => array("zeitsperretyp_kurzbz","beschreibung","farbe"),
 	"campus.tbl_zeitwunsch"  => array("stunde","mitarbeiter_uid","tag","gewicht","updateamum","updatevon","insertamum","insertvon"),

@@ -357,53 +357,6 @@ foreach($webservicerecht as $row)
 	}
 }
 
-// ******** Pruefen ob die Tabelle campus.tbl_zeitaufzeichnung_gd zusätzliche Spalte "geteilte_pause" (boolean nullable)
-//          hat und ob die spalte "selbstverwaltete_pause" nullable ist **********
-$neue=false;
-$geteilte_pause_exists = false;
-$selbstverwaltete_pause_is_nullable=false;
-$qry = "SELECT column_name, is_nullable, data_type
-		FROM information_schema.columns
-		WHERE table_name = 'tbl_zeitaufzeichnung_gd'
-		AND (column_name = 'selbstverwaltete_pause' OR column_name = 'geteilte_pause')";
-
-if($result = $db->db_query($qry))
-{
-	while($row = $db->db_fetch_object($result))
-	{
-		if($row->column_name=='geteilte_pause')
-		{
-			$geteilte_pause_exists=true;
-		}
-		if($row->column_name=='selbstverwaltete_pause' && $row->is_nullable=='YES')
-		{
-			$selbstverwaltete_pause_is_nullable=true;
-		}
-	}
-
-	if(!$geteilte_pause_exists || !$selbstverwaltete_pause_is_nullable)
-	{
-		$qry_alter="ALTER TABLE campus.tbl_zeitaufzeichnung_gd ";
-		if(!$geteilte_pause_exists)
-		{
-			$qry_alter.="ADD COLUMN geteilte_pause boolean ";
-		}
-		if(!$selbstverwaltete_pause_is_nullable)
-		{
-			$qry_alter.="ALTER COLUMN selbstverwaltete_pause DROP NOT NULL ";
-		}
-		if($db->db_query($qry_alter))
-		{
-			echo '<br>'.$row[$berechtigung_kurzbz].'/'.$row[$methode].'->'.$row[$klasse].' hinzugefügt';
-			$neue=true;
-		}
-		else
-			echo '<br><span class="error">Fehler während der Ändereung des Tables: tbl_zeitaufzeichnung_gd
-					ausgeführtes query war:'.$qry_alter.'	</span>';
-
-	}
-}
-
 if($neue==false)
 	echo '<br>Keine neuen Webservicerechte';
 
