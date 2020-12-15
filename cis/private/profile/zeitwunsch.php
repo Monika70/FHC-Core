@@ -121,10 +121,10 @@ $ss->getNextStudiensemester();
 $next_ss = $ss->studiensemester_kurzbz;
 $current_ss = $ss->getakt();
 
-function emailBetriebsrat($vorname, $nachname, $semester, $zustimmung)
+function emailBetriebsrat($vorname, $nachname, $semester)
 {
 	$message = "Dies ist eine automatische Mail! \n".
-		"$vorname $nachname hat einer geteilten Pause für das semester: $semester $zustimmung.";
+		"$vorname $nachname hat einer geteilten Pause für das Semester: $semester zugestimmt.";
 	$to = MAIL_BETRIEBSRAT;
 	$from='vilesci@'.DOMAIN;
 	$mail = new mail($to, $from, $nachname.' geteilte Pause', $message);
@@ -211,7 +211,10 @@ if (isset($_GET['geteilte-pause-akt']) && !empty($_GET['submit-gp-akt']))
 		$zeitaufzeichnung_gd->geteilte_pause = $geteilte_pause;
 		$zeitaufzeichnung_gd->updatevon = $uid;
 		$zeitaufzeichnung_gd->update();
-		emailBetriebsrat($person->vorname, $person->nachname, $current_ss, $zustimmung);
+		if($geteilte_pause)
+		{
+            emailBetriebsrat($person->vorname, $person->nachname, $current_ss);
+        }
 	}
 	else
 	{
@@ -222,7 +225,10 @@ if (isset($_GET['geteilte-pause-akt']) && !empty($_GET['submit-gp-akt']))
 		if ($zeitaufzeichnung_gd->save())
 		{
 			echo 'Erklärung zu selbstverwalteter Pause gespeichert';
-			emailBetriebsrat($person->vorname, $person->nachname, $current_ss, $zustimmung);
+			if($geteilte_pause)
+			{
+				emailBetriebsrat($person->vorname, $person->nachname, $current_ss);
+			}
 		}
 		else
 		{
@@ -242,7 +248,10 @@ if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
 		$zeitaufzeichnung_gd->geteilte_pause = $geteilte_pause;
 		$zeitaufzeichnung_gd->updatevon = $uid;
 		$zeitaufzeichnung_gd->update();
-		emailBetriebsrat($person->vorname, $person->nachname, $current_ss, $zustimmung);
+		if($geteilte_pause)
+        {
+            emailBetriebsrat($person->vorname, $person->nachname, $next_ss);
+        }
 	}
 	else
 	{
@@ -253,7 +262,10 @@ if (isset($_GET['geteilte-pause']) && !empty($_GET['submit-gp']))
 		if ($zeitaufzeichnung_gd->save())
 		{
 			echo 'Erklärung zu selbstverwalteter Pause gespeichert';
-			emailBetriebsrat($person->vorname, $person->nachname, $current_ss, $zustimmung);
+			if($geteilte_pause)
+			{
+				emailBetriebsrat($person->vorname, $person->nachname, $next_ss);
+			}
 		}
 		else
 		{

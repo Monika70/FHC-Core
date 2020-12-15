@@ -383,14 +383,14 @@ if($result = $db->db_query($qry))
 
 	if(!$geteilte_pause_exists || !$selbstverwaltete_pause_is_nullable)
 	{
-		$qry_alter="ALTER TABLE campus.tbl_zeitaufzeichnung_gd ";
+		$qry_alter="";
 		if(!$geteilte_pause_exists)
 		{
-			$qry_alter.="ADD COLUMN geteilte_pause boolean ";
+			$qry_alter.="ALTER TABLE campus.tbl_zeitaufzeichnung_gd ADD COLUMN geteilte_pause boolean; ";
 		}
 		if(!$selbstverwaltete_pause_is_nullable)
 		{
-			$qry_alter.="ALTER COLUMN selbstverwaltete_pause DROP NOT NULL ";
+			$qry_alter.="ALTER TABLE campus.tbl_zeitaufzeichnung_gd ALTER COLUMN selbstverwaltete_pause DROP NOT NULL; ";
 		}
 		if($db->db_query($qry_alter))
 		{
