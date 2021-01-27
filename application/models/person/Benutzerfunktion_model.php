@@ -1,6 +1,6 @@
 <?php
 
-class Benutzerfunktion_model extends DB_Model
+class   Benutzerfunktion_model extends DB_Model
 {
 	/**
 	 * Constructor

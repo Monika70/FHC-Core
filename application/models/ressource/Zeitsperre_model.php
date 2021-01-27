@@ -20,4 +20,18 @@ class Zeitsperre_model extends DB_Model
 
         return $this->execQuery($qry);
     }
+
+    public function getMitarbeiterListWithPendingVacation()
+    {
+	    $qry = "SELECT 
+					DISTINCT mitarbeiter_uid
+				FROM 
+					campus.tbl_zeitsperre 
+				WHERE 
+					freigabeamum is NULL 
+					AND zeitsperretyp_kurzbz='Urlaub'
+					AND vondatum>=now()
+				ORDER BY mitarbeiter_uid ASC;";
+	    return $this->execQuery($qry);
+    }
 }

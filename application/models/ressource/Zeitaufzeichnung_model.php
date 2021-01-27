@@ -21,4 +21,15 @@ class Zeitaufzeichnung_model extends DB_Model
 
         return $this->execQuery($qry);
     }
+
+	public function zeitaufzeichnungExistsForLastWeekList()
+	{
+		$qry = "SELECT 
+					DISTINCT uid
+				FROM campus.tbl_zeitaufzeichnung 
+				WHERE date_trunc('day',ende) >= (date_trunc('day', current_date-interval '7' day));";
+
+		return $this->execQuery($qry);
+
+	}
 }
