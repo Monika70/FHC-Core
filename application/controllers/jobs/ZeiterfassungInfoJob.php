@@ -18,6 +18,9 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class ZeiterfassungInfoJob extends JOB_Controller
 {
+
+	const URLAUBSFREIGABE_PATH = 'cis/private/profile/urlaubsfreigabe.php';
+	const MONATSLISTEN_PATH = 'addons/casetime/cis/timesheet_overview.php';
 	/**
 	 * Constructor
 	 */
@@ -63,19 +66,50 @@ class ZeiterfassungInfoJob extends JOB_Controller
 		foreach ($allMitarbeiter as $ma)
 		{
 			$uid = $ma->uid;
-			array_key_exists($uid, $vorgesetzte_to_approve_vacation) ? $ma->SupVac=true : false;
-			array_key_exists($uid, $vorgesetzte_to_approve_timesheets) ? $ma->SupMonth=true : false;
-			array_key_exists($uid, $mitarbeiter_to_send_timesheet_lastmonth) ? $ma->EmpMonth=true : false;
-			array_key_exists($uid, $mitarbeiter_to_record_times_lastweek) ? $ma->EmpWeek=true : false;
+			if(array_key_exists($uid, $vorgesetzte_to_approve_vacation))
+			{
+				$ma->SupVac = true;
+			}
+			else
+			{
+				$ma->SupVac = false;
+			}
+			if(array_key_exists($uid, $vorgesetzte_to_approve_timesheets))
+			{
+				$ma->SupMonth = true;
+			}
+			else
+			{
+				$ma->SupMonth = false;
+			}
+			if(array_key_exists($uid, $mitarbeiter_to_send_timesheet_lastmonth))
+			{
+				$ma->EmpMonth = true;
+			}
+			else
+			{
+				$ma->EmpMonth = false;
+			}
+			if(array_key_exists($uid, $mitarbeiter_to_record_times_lastweek))
+			{
+				$ma->EmpWeek = true;
+			}
+			else
+			{
+				$ma->EmpWeek = false;
+			}
 
-			if($ma->SupVac || $ma->SupMonth || $ma->EmpMonth || $ma->EmpWeek || $ma->SupVac)
+
+			if($ma->SupVac || $ma->SupMonth || $ma->EmpMonth || $ma->EmpWeek || $ma->EmpZeitMod)
 			{
 				array_push($mailingList, $ma);
 			}
 
 		}
-		// Loop through 'container' of mail recipients
+		$start = date("h:i:sa");
 
+		print_r(date("h:i:sa\n"));
+		// Loop through 'container' of mail recipients
 		foreach ($mailingList as $ma)
 		{
 			// Set mail recipient
@@ -87,15 +121,15 @@ class ZeiterfassungInfoJob extends JOB_Controller
 			$EmpWeek ='';
 			$EmpZeitMod ='';
 
-			$ma->SupVac ? $supVac = '->Du hast noch Urlaube freizugeben.<br><br>' : '';
-			$ma->SupMonth ? $SupMonth = '->Du hast noch Monatslisten freizugeben.<br><br>' : '';
+			//Generate Email Text
+			$ma->SupVac ? $supVac = '->Du hast noch Urlaube freizugeben. Du findest die Ulaubsfreigabe unter: <a href="'.CIS_ROOT.'cis/index.php?menu='.CIS_ROOT. 'cis/menu.php?content_id=&content='.CIS_ROOT.self::URLAUBSFREIGABE_PATH.'">Urlaubstool</a><br><br>' : '';
+			$ma->SupMonth ? $SupMonth = '->Du hast noch Monatslisten freizugeben. Du findest die Monatslistenfreigabe unter: <a href="'.CIS_ROOT.'cis/index.php?menu='.CIS_ROOT. 'cis/menu.php?content_id=&content='.CIS_ROOT.self::MONATSLISTEN_PATH.'">Monatslisten</a><br><br>' : '';
 			$ma->EmpMonth ? $EmpMonth = '->Du musst noch die Monatsliste von letztem Monat abschicken.<br><br>' : '';
 			$ma->EmpWeek ? $EmpWeek = '->Du musst noch Zeiten für letzte Woche eintragen.<br><br>' : '';
 			$ma->EmpZeitMod ? $EmpZeitMod = '->Du hast noch kein Zeitmodell hinterlegt.<br><br>' : '';
 
 			// Prepare mail content
 			$content_data_arr = array(
-				'vorname'       => $ma->vorname,
 				'SupVac'        => $supVac,
 				'SupMonth'      => $SupMonth,
 				'EmpMonth'      => $EmpMonth,
@@ -110,6 +144,9 @@ class ZeiterfassungInfoJob extends JOB_Controller
 				'Zeiterfassung Erinnerung'
 			);
 		}
+		$end = date("h:i:sa");
+		print_r($end."\n");
+		print_r(($start-$end."\n"));
 
 		return true;
 	}
@@ -137,17 +174,20 @@ class ZeiterfassungInfoJob extends JOB_Controller
 
 		foreach ($vorgesetzte as $v)
 		{
-			foreach ($v as $obj)
+			if(!(is_null($v)))
 			{
-				$name = $obj->vorgesetzter;
+				foreach ($v as $obj)
+				{
+					$name = $obj->vorgesetzter;
 
-				if (!array_key_exists($name, $toSend))
-				{
-					$toSend[$name] = 1;
-				}
-				else
-				{
-					$toSend[$name] += 1;
+					if (!(is_null($name)) && !array_key_exists($name, $toSend))
+					{
+						$toSend[$name] = 1;
+					}
+					else
+					{
+						$toSend[$name] += 1;
+					}
 				}
 			}
 		}
@@ -245,14 +285,14 @@ class ZeiterfassungInfoJob extends JOB_Controller
 
 	private function _getEmplyeeUids()
 	{
-		$mitarbeiter = $this->MitarbeiterModel->getPersonal(true,null,true)->retval;
+		$mitarbeiter = $this->MitarbeiterModel->getEmployeesZeitaufzeichnungspflichtig()->retval;
 		$mitarbeiterUIDs = array();
 
 		foreach ($mitarbeiter as $ma)
 		{
 			$mitarbeiterObj = new StdClass();
-			$mitarbeiterObj->uid = $ma->uid;
-			$mitarbeiterObj->vorname = $ma->vorname;
+			$mitarbeiterObj->uid = $ma->mitarbeiter_uid;
+			//$mitarbeiterObj->vorname = $ma->vorname;
 			$mitarbeiterObj->SupVac = false;
 			$mitarbeiterObj->SupMonth = false;
 			$mitarbeiterObj->EmpMonth = false;
@@ -267,7 +307,6 @@ class ZeiterfassungInfoJob extends JOB_Controller
 
 	private function _filterMitarbeiter($allMitarbeiter)
 	{
-
 	}
 
 
