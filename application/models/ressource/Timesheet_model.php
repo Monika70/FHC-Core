@@ -35,4 +35,44 @@ class Timesheet_model extends DB_Model
 		return $this->execQuery($qry);
 	}
 
+	public function getAllMissingZeitmodelle()
+	{
+		{
+			$ch = curl_init();
+
+			$url = 'http://10.129.0.19:8080/sync/get_all_missing_zeitmodelle';
+
+			//$fields_string = '';
+			curl_setopt($ch, CURLOPT_URL, $url ); //Url together with parameters
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); //Return data instead printing directly in Browser
+			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT , 7); //Timeout after 7 seconds
+			curl_setopt($ch, CURLOPT_USERAGENT , "FH-Complete CaseTime Addon");
+			curl_setopt($ch, CURLOPT_HEADER, 0);
+			curl_setopt($ch, CURLOPT_POST, true);
+
+			$result = curl_exec($ch);
+
+			if(curl_errno($ch))
+			{
+				//print_r($ch);
+				return 'Curl error: ' . curl_error($ch);
+				curl_close($ch);
+			}
+			else
+			{
+				curl_close($ch);
+				$data = json_decode($result);
+
+				if(isset($data->STATUS) && $data->STATUS=='OK')
+				{
+					//print_r($data);
+					return $data->RESULT;
+				}
+				else
+					//print_r($data);
+				return $data;
+			}
+		}
+	}
+
 }
