@@ -259,7 +259,7 @@
 											echo $this->widgetlib->widget(
 												'Zgvmaster_widget',
 												array(DropdownWidget::SELECTED_ELEMENT => $zgvpruefung->zgvmas_code),
-												array('name' => 'zgvmas', 'id' => 'zgvmas')
+												array('name' => 'zgvmas', 'id' => 'zgvmas_'.$zgvpruefung->prestudent_id)
 											); ?>
 									</div>
 								</div>
@@ -272,7 +272,8 @@
 											?>
 											<input type="text" class="form-control"
 												   value="<?php echo $zgvpruefung->zgvmaort ?>"
-												   name="zgvmaort">
+												   name="zgvmaort"
+												   id="zgvmaort_<?php echo $zgvpruefung->prestudent_id ?>">
 										<?php endif; ?>
 									</div>
 								</div>
@@ -288,7 +289,8 @@
 											<input type="text"
 												   class="dateinput form-control"
 												   value="<?php echo $zgvmadatum ?>"
-												   name="zgvmadatum">
+												   name="zgvmadatum"
+												   id="zgvmadatum_<?php echo $zgvpruefung->prestudent_id ?>">
 										<?php endif; ?>
 									</div>
 								</div>
@@ -301,7 +303,7 @@
 											echo $this->widgetlib->widget(
 												'Nation_widget',
 												array(DropdownWidget::SELECTED_ELEMENT => $zgvpruefung->zgvmanation_code),
-												array('name' => 'zgvmanation', 'id' => 'zgvmanation')
+												array('name' => 'zgvmanation', 'id' => 'zgvmanation_'.$zgvpruefung->prestudent_id)
 											); ?>
 									</div>
 								</div>
