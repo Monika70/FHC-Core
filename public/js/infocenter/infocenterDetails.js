@@ -237,6 +237,7 @@ var InfocenterDetails = {
 			}
 		);
 	},
+
 	saveZgv: function(data)
 	{
 		var zgvError = function(){
@@ -356,8 +357,9 @@ var InfocenterDetails = {
 			}
 		);
 	},
-	saveNotiz: function(personid, data)
+	saveNotiz: function(personid, data, callback)
 	{
+		var callbackValue = data;
 		FHC_AjaxClient.ajaxCallPost(
 			CALLED_PATH + '/saveNotiz/' + encodeURIComponent(personid),
 			data,
@@ -367,6 +369,8 @@ var InfocenterDetails = {
 					{
 						InfocenterDetails._refreshNotizen();
 						InfocenterDetails._refreshLog();
+						if ($.isFunction(callback))
+							callback(callbackValue);
 					}
 					else
 					{
@@ -762,6 +766,10 @@ var InfocenterDetails = {
 			InfocenterDetails.zgvUebernehmen(personid, prestudentid, btn);
 		});
 
+		$('.notizModal').on('hidden.bs.modal', function () {
+			$(':input', this).val('');
+		});
+
 		//zgv speichern
 		$(".saveZgv").click(function ()
 			{
@@ -901,6 +909,8 @@ var InfocenterDetails = {
 				}
 			}
 		);
+
+		zgvUeberpruefung.checkAfterReload();
 	},
 	_refreshMessages: function()
 	{

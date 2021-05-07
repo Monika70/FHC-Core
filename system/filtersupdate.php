@@ -402,6 +402,61 @@ $filters = array(
 		'oe_kurzbz' => null,
 	),
 	array(
+		'app' => 'infocenter',
+		'dataset_name' => 'zgvUeberpruefung',
+		'filter_kurzbz' => 'zgvOffen',
+		'description' => '{ZGV Überprüfung}',
+		'sort' => 1,
+		'default_filter' => true,
+		'filter' => '
+			{
+				"name": "Zgv Überprüfung",
+				"columns": [
+					{"name": "PreStudentID"},
+					{"name": "Vorname"},
+					{"name": "Nachname"},
+					{"name": "Studiengang"}
+				],
+				"filters": [
+					{
+						"name": "Status",
+						"condition": "stg",
+						"operation": "contains"
+					}
+				]
+			}
+		',
+		'oe_kurzbz' => null,
+	),
+	array(
+		'app' => 'infocenter',
+		'dataset_name' => 'zgvUeberpruefung',
+		'filter_kurzbz' => 'zgvRest',
+		'description' => '{ZGV abgeschlossen}',
+		'sort' => 2,
+		'default_filter' => true,
+		'filter' => '
+			{
+				"name": "Zgv abgeschlossen",
+				"columns": [
+					{"name": "PreStudentID"},
+					{"name": "Vorname"},
+					{"name": "Nachname"},
+					{"name": "Studiengang"},
+					{"name": "Status"}
+				],
+				"filters": [
+					{
+						"name": "Status",
+						"condition": "stg",
+						"operation": "ncontains"
+					}
+				]
+			}
+		',
+		'oe_kurzbz' => null,
+	),
+	array(
 		'app' => 'budget',
 		'dataset_name' => 'budgetoverview',
 		'filter_kurzbz' => 'BudgetUebersicht',

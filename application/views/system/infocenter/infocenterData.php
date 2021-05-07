@@ -1,16 +1,17 @@
 <?php
 
+	$this->config->load('infocenter');
 	$APP = '\'infocenter\'';
 	$REJECTED_STATUS = '\'Abgewiesener\'';
 	$INTERESSENT_STATUS = '\'Interessent\'';
-	$STUDIENGANG_TYP = '\'b\'';
+	$STUDIENGANG_TYP = '\''.$this->variablelib->getVar('infocenter_studiensgangtyp').'\'';
 	$TAETIGKEIT_KURZBZ = '\'bewerbung\', \'kommunikation\'';
 	$LOGDATA_NAME = '\'Login with code\', \'Login with user\', \'New application\', \'Interessent rejected\'';
 	$LOGDATA_NAME_PARKED = '\'Parked\'';
 	$LOGDATA_NAME_ONHOLD = '\'Onhold\'';
 	$LOGTYPE_KURZBZ = '\'Processstate\'';
 	$STATUS_KURZBZ = '\'Wartender\', \'Bewerber\', \'Aufgenommener\', \'Student\'';
-	$ADDITIONAL_STG = '10021,10027';
+	$ADDITIONAL_STG = $this->config->item('infocenter_studiengang_kz');
 	$AKTE_TYP = '\'identity\', \'zgv_bakk\'';
 	$STUDIENSEMESTER = '\''.$this->variablelib->getVar('infocenter_studiensemester').'\'';
 
@@ -142,10 +143,7 @@
 				   AND pss.bewerbung_abgeschicktamum IS NOT NULL
 				 -- AND pss.bestaetigtam IS NULL
 				   AND ps.person_id = p.person_id
-				   AND (sg.typ IN ('.$STUDIENGANG_TYP.')
-					   OR
-					   sg.studiengang_kz in('.$ADDITIONAL_STG.')
-					   )
+			
 				   AND pss.studiensemester_kurzbz = '.$STUDIENSEMESTER.'
 				   AND NOT EXISTS (
 					   SELECT 1
@@ -213,7 +211,24 @@
 				 WHERE ps.person_id = p.person_id
 			  ORDER BY ps.zgvnation DESC NULLS LAST, ps.prestudent_id DESC
 				 LIMIT 1
-			) AS "ZGVNation"
+			) AS "ZGVNation",
+			(
+				SELECT tbl_organisationseinheit.bezeichnung
+				FROM public.tbl_benutzerfunktion 
+				JOIN public.tbl_organisationseinheit USING(oe_kurzbz)
+				WHERE (tbl_benutzerfunktion.datum_von IS NULL OR tbl_benutzerfunktion.datum_von <= now()) 
+				AND (tbl_benutzerfunktion.datum_bis IS NULL OR tbl_benutzerfunktion.datum_bis >= now())
+				AND tbl_benutzerfunktion.uid = (
+					SELECT l.insertvon
+					FROM system.tbl_log l
+					WHERE l.taetigkeit_kurzbz IN ('.$TAETIGKEIT_KURZBZ.')
+					AND l.logdata->>\'name\' NOT IN ('.$LOGDATA_NAME.')
+					AND l.person_id = p.person_id
+					ORDER BY l.zeitpunkt DESC
+					LIMIT 1
+				)
+				LIMIT 1 
+			) AS "InfoCenterMitarbeiter"
 		  FROM public.tbl_person p
 	 LEFT JOIN (
 				SELECT tpl.person_id,
@@ -298,7 +313,8 @@
 			ucfirst($this->p->t('lehre', 'studiengang')).' ('.$this->p->t('global', 'gesendet').')',
 			ucfirst($this->p->t('lehre', 'studiengang')).' ('.$this->p->t('global', 'nichtGesendet').')',
 			ucfirst($this->p->t('lehre', 'studiengang')).' ('.$this->p->t('global', 'aktiv').')',
-			'ZGV Nation'
+			'ZGV Nation',
+			'InfoCenter Mitarbeiter'
 		),
 		'formatRow' => function($datasetRaw) {
 
@@ -378,6 +394,15 @@
 			if ($datasetRaw->{'ZGVNation'} == null)
 			{
 				$datasetRaw->{'ZGVNation'} = '-';
+			}
+
+			if ($datasetRaw->{'InfoCenterMitarbeiter'} === 'InfoCenter')
+			{
+				$datasetRaw->{'InfoCenterMitarbeiter'} = 'Ja';
+			}
+			else
+			{
+				$datasetRaw->{'InfoCenterMitarbeiter'} = 'Nein';
 			}
 
 			return $datasetRaw;
