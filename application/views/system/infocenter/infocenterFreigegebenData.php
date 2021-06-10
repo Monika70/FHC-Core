@@ -207,7 +207,14 @@
 				 WHERE ps.person_id = p.person_id
 			  ORDER BY ps.zgvnation DESC NULLS LAST, ps.prestudent_id DESC
 				 LIMIT 1
-			) AS "ZGVNation"
+			) AS "ZGVNation",
+			(
+				SELECT ps.zgvmanation
+				FROM public.tbl_prestudent ps
+				 WHERE ps.person_id = p.person_id
+			  ORDER BY ps.zgvmanation DESC NULLS LAST, ps.prestudent_id DESC
+				 LIMIT 1
+			) AS "ZGVMNation"
 		  FROM public.tbl_person p
 	 LEFT JOIN (
 			SELECT tpl.person_id,
@@ -275,7 +282,8 @@
 			'Reihungstest angetreten',
 			'Reihungstest angemeldet',
 			'Reihungstest date',
-			'ZGV Nation'
+			'ZGV Nation',
+			'ZGV Master Nation'
 		),
 		'formatRow' => function($datasetRaw) {
 
@@ -367,6 +375,11 @@
 			if ($datasetRaw->{'ZGVNation'} == null)
 			{
 				$datasetRaw->{'ZGVNation'} = '-';
+			}
+
+			if ($datasetRaw->{'ZGVMNation'} == null)
+			{
+				$datasetRaw->{'ZGVMNation'} = '-';
 			}
 			return $datasetRaw;
 		},

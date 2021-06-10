@@ -79,7 +79,13 @@ class InfoCenter extends Auth_Controller
 			'name' => 'ZGV pruefung added',
 			'message' => 'ZGV with the ID %s was added',
 			'success' => null
-		)
+		),
+		'updatedoctyp' => array(
+			'logtype' => 'Action',
+			'name' => 'Document type updated',
+			'message' => 'Type of Document %s was updated, set to %s',
+			'success' => null
+		),
 	);
 
 	// Name of Interessentenstatus
@@ -104,6 +110,7 @@ class InfoCenter extends Auth_Controller
 				'showZGVDetails' => 'lehre/zgvpruefung:r',
 				'unlockPerson' => 'infocenter:rw',
 				'saveFormalGeprueft' => 'infocenter:rw',
+				'saveDocTyp' => 'infocenter:rw',
 				'getPrestudentData' => 'infocenter:r',
 				'getLastPrestudentWithZgvJson' => 'infocenter:r',
 				'getZgvInfoForPrestudent' => 'infocenter:r',
@@ -133,6 +140,7 @@ class InfoCenter extends Auth_Controller
 
 		// Loads models
 		$this->load->model('crm/Akte_model', 'AkteModel');
+		$this->load->model('crm/Dokument_model', 'DokumentModel');
 		$this->load->model('crm/Prestudent_model', 'PrestudentModel');
 		$this->load->model('crm/Prestudentstatus_model', 'PrestudentstatusModel');
 		$this->load->model('crm/Statusgrund_model', 'StatusgrundModel');
@@ -279,9 +287,13 @@ class InfoCenter extends Auth_Controller
 		$persondata = $this->_loadPersonData($person_id);
 		$prestudentdata = $this->_loadPrestudentData($person_id);
 
+		$this->DokumentModel->addOrder('bezeichnung');
+		$dokumentdata = array('dokumententypen' => (getData($this->DokumentModel->load())));
+
 		$data = array_merge(
 			$persondata,
-			$prestudentdata
+			$prestudentdata,
+			$dokumentdata
 		);
 
 		$data[self::FHC_CONTROLLER_ID] = $this->getControllerId();
@@ -1157,6 +1169,41 @@ class InfoCenter extends Auth_Controller
 		$this->outputJsonSuccess('success');
 	}
 
+	public function saveDocTyp($person_id)
+	{
+		$akte_id = $this->input->post('akte_id');
+		$typ = $this->input->post('typ');
+
+		if (!isset($akte_id) || !isset($typ) || !isset($person_id))
+			$this->terminateWithJsonError("Nicht alle sind Parameter übergeben worden");
+
+		$akte = $this->AkteModel->load($akte_id);
+
+		if (!hasData($akte))
+			$this->terminateWithJsonError("Fehler beim Laden der Akte");
+
+		$result = $this->AkteModel->update($akte_id, array('dokument_kurzbz' => $typ));
+
+		if (!isSuccess($result))
+			$this->terminateWithJsonError("Fehler beim Update aufgetreten");
+
+		$dokument = $this->DokumentModel->load($akte->retval[0]->dokument_kurzbz);
+
+		if (!hasData($dokument))
+			$this->terminateWithJsonError("Fehler beim Laden des Dokumententypes");
+
+		$this->_log(
+			$person_id,
+			'updatedoctyp',
+			array(
+				isEmptyString($akte->retval[0]->titel) ? $akte->retval[0]->bezeichnung : $akte->retval[0]->titel,
+				isEmptyString($dokument->retval[0]->bezeichnung) ? $dokument->retval[0]->dokument_kurbz : $dokument->retval[0]->bezeichnung
+			)
+		);
+
+		$this->outputJsonSuccess('success');
+	}
+
 	// -----------------------------------------------------------------------------------------------------------------
 	// Private methods
 
@@ -1483,7 +1530,7 @@ class InfoCenter extends Auth_Controller
 	 * @param $person_id
 	 * @return array
 	 */
-	public function _loadPersonData($person_id)
+	private function _loadPersonData($person_id)
 	{
 		$locked = $this->PersonLockModel->checkIfLocked($person_id, self::APP);
 
