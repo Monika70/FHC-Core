@@ -4781,7 +4781,6 @@ if($result = @$db->db_query("SELECT 1 FROM system.tbl_berechtigung WHERE berecht
 	}
 }
 
-
 // Add table zgvpruefungstatus
 if(!$result = @$db->db_query("SELECT 1 FROM public.tbl_zgvpruefungstatus LIMIT 1;"))
 {
@@ -4822,7 +4821,7 @@ if(!$result = @$db->db_query("SELECT 1 FROM public.tbl_zgvpruefung LIMIT 1;"))
 			updatevon character varying(32)
 		);
 
-		CREATE SEQUENCE public.tbl_zgvpruefung_id_seq 
+		CREATE SEQUENCE public.tbl_zgvpruefung_id_seq
 			INCREMENT BY 1
 			NO MAXVALUE
 			NO MINVALUE
@@ -4834,7 +4833,7 @@ if(!$result = @$db->db_query("SELECT 1 FROM public.tbl_zgvpruefung LIMIT 1;"))
 		GRANT SELECT, UPDATE ON public.tbl_zgvpruefung_id_seq  TO vilesci;
 		GRANT SELECT, INSERT, UPDATE, DELETE ON public.tbl_zgvpruefung TO vilesci;
 		GRANT SELECT ON public.tbl_zgvpruefung TO web;
-		
+
 	";
 
 	if(!$db->db_query($qry))
@@ -4855,7 +4854,7 @@ if(!$result = @$db->db_query("SELECT 1 FROM public.tbl_zgvpruefungstatus_status 
 			datum timestamp without time zone DEFAULT now()
 		);
 
-		CREATE SEQUENCE public.tbl_zgvpruefungstatus_status_id_seq 
+		CREATE SEQUENCE public.tbl_zgvpruefungstatus_status_id_seq
 			INCREMENT BY 1
 			NO MAXVALUE
 			NO MINVALUE
@@ -4875,6 +4874,20 @@ if(!$result = @$db->db_query("SELECT 1 FROM public.tbl_zgvpruefungstatus_status 
 		echo '<strong>public.tbl_zgvpruefungstatus_status: '.$db->db_last_error().'</strong><br>';
 	else
 		echo ' public.tbl_zgvpruefungstatus_status: Tabelle hinzugefuegt<br>';
+}
+
+// INSERT,DELETE,UPDATE Berechtigung für tbl_dokumentprestudent hinzufügen
+if($result = @$db->db_query("SELECT * FROM information_schema.role_table_grants WHERE table_name='tbl_dokumentprestudent' AND table_schema='public' AND grantee='web' AND privilege_type in ('INSERT','DELETE','UPDATE')"))
+{
+	if($db->db_num_rows($result)==0)
+	{
+		$qry = "GRANT INSERT, DELETE, UPDATE ON public.tbl_dokumentprestudent TO web;";
+
+		if(!$db->db_query($qry))
+			echo '<strong>dokumentprestudent Berechtigungen: '.$db->db_last_error().'</strong><br>';
+		else
+			echo '<br>Granted privileges to public.tbl_dokumentprestudent';
+	}
 }
 
 
@@ -4997,8 +5010,9 @@ $tabellen=array(
 	"lehre.tbl_lehrform"  => array("lehrform_kurzbz","bezeichnung","verplanen","bezeichnung_kurz","bezeichnung_lang"),
 	"lehre.tbl_lehrfunktion"  => array("lehrfunktion_kurzbz","beschreibung","standardfaktor","sort"),
 	"lehre.tbl_lehrmittel" => array("lehrmittel_kurzbz","beschreibung","ort_kurzbz"),
+	"lehre.tbl_lehrmodus"  => array("lehrmodus_kurzbz","bezeichnung_mehrsprachig","aktiv"),
 	"lehre.tbl_lehrtyp" => array("lehrtyp_kurzbz","bezeichnung"),
-	"lehre.tbl_lehrveranstaltung"  => array("lehrveranstaltung_id","kurzbz","bezeichnung","lehrform_kurzbz","studiengang_kz","semester","sprache","ects","semesterstunden","anmerkung","lehre","lehreverzeichnis","aktiv","planfaktor","planlektoren","planpersonalkosten","plankostenprolektor","koordinator","sort","zeugnis","projektarbeit","updateamum","updatevon","insertamum","insertvon","ext_id","bezeichnung_english","orgform_kurzbz","incoming","lehrtyp_kurzbz","oe_kurzbz","raumtyp_kurzbz","anzahlsemester","semesterwochen","lvnr","farbe","semester_alternativ","old_lehrfach_id","sws","lvs","alvs","lvps","las","benotung","lvinfo","lehrauftrag"),
+	"lehre.tbl_lehrveranstaltung"  => array("lehrveranstaltung_id","kurzbz","bezeichnung","lehrform_kurzbz","studiengang_kz","semester","sprache","ects","semesterstunden","anmerkung","lehre","lehreverzeichnis","aktiv","planfaktor","planlektoren","planpersonalkosten","plankostenprolektor","koordinator","sort","zeugnis","projektarbeit","updateamum","updatevon","insertamum","insertvon","ext_id","bezeichnung_english","orgform_kurzbz","incoming","lehrtyp_kurzbz","oe_kurzbz","raumtyp_kurzbz","anzahlsemester","semesterwochen","lvnr","farbe","semester_alternativ","old_lehrfach_id","sws","lvs","alvs","lvps","las","benotung","lvinfo","lehrauftrag","lehrmodus_kurzbz"),
 	"lehre.tbl_lehrveranstaltung_kompatibel" => array("lehrveranstaltung_id","lehrveranstaltung_id_kompatibel"),
 	"lehre.tbl_lvangebot" => array("lvangebot_id","lehrveranstaltung_id","studiensemester_kurzbz","gruppe_kurzbz","incomingplaetze","gesamtplaetze","anmeldefenster_start","anmeldefenster_ende","insertamum","insertvon","updateamum","updatevon"),
 	"lehre.tbl_lvregel" => array("lvregel_id","lvregeltyp_kurzbz","operator","parameter","lvregel_id_parent","lehrveranstaltung_id","studienplan_lehrveranstaltung_id","insertamum","insertvon","updateamum","updatevon"),

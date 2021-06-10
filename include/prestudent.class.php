@@ -2215,9 +2215,9 @@ class prestudent extends person
 				WHERE laststatus NOT IN ('Abbrecher', 'Abgewiesener', 'Absolvent')
 				AND priorisierung <= ".$this->db_add_param($priorisierungAbsolut, FHC_INTEGER);
 
-		if($result = $this->db_query($qry))
+		if ($result = $this->db_query($qry))
 		{
-			if($row = $this->db_fetch_object($result))
+			if ($row = $this->db_fetch_object($result))
 			{
 				return $row->prio_relativ;
 			}
@@ -2232,6 +2232,233 @@ class prestudent extends person
 			$this->errormsg = 'Fehler beim Laden der Daten';
 			return false;
 		}
+	}
 
+	/**
+	 * Prueft, ob eine Person einen aktuellen PreStudentstatus-Eintrag besitzt, der die ZGV Master ersetzt
+	 * @param int $person_id ID der zu überprüfenden Person.
+	 * @return true wenn vorhanden
+	 *		 false wenn nicht vorhanden
+	 *		 false und errormsg wenn Fehler aufgetreten ist
+	 */
+	public function existsZGVIntern($person_id)
+	{
+		if (!is_numeric($person_id))
+		{
+			$this->errormsg = 'Person_id muss eine gueltige Zahl sein';
+			return false;
+		}
+
+
+		$qry = "SELECT count(*) as anzahl FROM public.tbl_prestudent
+				JOIN public.tbl_prestudentstatus USING (prestudent_id)
+				JOIN public.tbl_studiengang USING (studiengang_kz)
+				WHERE person_id = ".$this->db_add_param($person_id, FHC_INTEGER)."
+				AND status_kurzbz in ('Absolvent','Diplomand','Unterbrecher','Student')
+				AND typ in ('b','m','d')";
+
+
+		if ($this->db_query($qry))
+		{
+			if ($row = $this->db_fetch_object())
+			{
+				if ($row->anzahl > 0)
+				{
+					$this->errormsg = '';
+					return true;
+				}
+				else
+				{
+					$this->errormsg = '';
+					return false;
+				}
+			}
+			else
+			{
+				$this->errormsg = 'Fehler beim Laden der Daten';
+				return false;
+			}
+		}
+		else
+		{
+			$this->errormsg = 'Fehler beim Laden der Daten';
+			return false;
+		}
+	}
+
+	/**
+	 * Befüllt MasterZGV Nation mit Österreich
+	 * @param int $person_id Personenkennzeichen.
+	 * @return true wenn erfolgreich durchgeführt
+	 *		 false und errormsg wenn ein Fehler aufgetreten ist
+	 */
+	public function setManationZGV($person_id)
+	{
+		if (!is_numeric($person_id))
+		{
+			$this->errormsg = 'Person_id muss eine gueltige Zahl sein';
+			return false;
+		}
+
+		$db = new basis_db();
+		$arrayleereManations = array();
+
+		//all prestudent_ids mit leerer ZGV_Nation und Status Interessent
+		$qry = "SELECT
+					*
+				FROM
+					public.tbl_prestudent
+				JOIN
+					public.tbl_studiengang USING (studiengang_kz)
+				JOIN
+					public.tbl_prestudentstatus USING (prestudent_id)
+				WHERE
+					person_id = ".$this->db_add_param($person_id)."
+				AND
+					zgvmanation is NULL
+				AND
+					typ in ('m','d')
+				AND
+					status_kurzbz = 'Interessent'";
+
+		if ($db->db_query($qry))
+		{
+			$num_rows = $db->db_num_rows();
+
+			if ($num_rows > 0)
+			{
+				while ($row = $db->db_fetch_object())
+				{
+					//echo var_dump($row->prestudent_id);
+					$arrayleereManations[] = $row->prestudent_id;
+				}
+				//print_r($arrayleereManations);
+
+				$qry = "UPDATE
+					public.tbl_prestudent
+				SET
+					zgvmanation = 'A'
+				WHERE
+					prestudent_id in (";
+
+				foreach ($arrayleereManations as $prestudent_id)
+				{
+					$qry .= $prestudent_id;
+
+					if (next($arrayleereManations) == true)
+					{
+						$qry .=  ",";
+					}
+				}
+				$qry .=  ");";
+
+				//echo $qry;
+
+				if ($this->db_query($qry))
+				{
+					//echo " ZGV-Master Nation A eingetragen!";
+					return true;
+				}
+				else
+				{
+					$this->errormsg = 'Fehler beim Eintragen zgvMasternation';
+					return false;
+				}
+			}
+			else
+				//echo " Keine leere ZGVManation gefunden";
+				return true;
+		}
+	}
+
+	/**
+	 * liefert den letztgültigen Status des Prestudenten
+	 * @param int $prestudent_id ID der zu überprüfenden Person.
+	 * @return string $result wenn vorhanden
+	 *		 false und errormsg wenn Fehler aufgetreten ist
+	 */
+	public function getLastPrestudentStatus($prestudent_id)
+	{
+		if (!is_numeric($prestudent_id))
+		{
+			$this->errormsg = 'Prestudent_id muss eine gueltige Zahl sein';
+			return false;
+		}
+
+		$db = new basis_db();
+		//get all prestudents
+		$qry = "SELECT pss.status_kurzbz
+		FROM public.tbl_prestudentstatus pss
+		JOIN public.tbl_prestudent ps using (prestudent_id)
+		where ps.prestudent_id = ".$this->db_add_param($prestudent_id)."
+		group by prestudent_id, pss.status_kurzbz, pss.insertamum
+		order by pss.insertamum DESC limit 1";
+
+		if ($db->db_query($qry))
+		{
+			$row = $db->db_fetch_object();
+			$result = $row->status_kurzbz;
+			return $result;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	/**
+	 * Prueft, ob eine Person einen aktuellen PreStudentstatus-Eintrag Interessent für einen Masterstudiengang besitzt
+	 * @param int $person_id ID der zu überprüfenden Person.
+	 * @return true wenn vorhanden
+	 *		 false wenn nicht vorhanden
+	 *		 false und errormsg wenn Fehler aufgetreten ist
+	 */
+	public function existsStatusInteressentMaster($person_id)
+	{
+		if (!is_numeric($person_id))
+		{
+			$this->errormsg = 'Person_id muss eine gueltige Zahl sein';
+			return false;
+		}
+
+		$db = new basis_db();
+		$prestudentsOfMaster = array();
+		//get all prestudents
+		$qry = "SELECT
+					prestudent_id
+				FROM
+					tbl_prestudent ps, tbl_studiengang sg
+				WHERE
+					ps.studiengang_kz = sg.studiengang_kz
+				AND
+					sg.typ in ('m','d')
+				AND person_id = ".$this->db_add_param($person_id).";";
+
+
+
+		if ($db->db_query($qry))
+		{
+			$num_rows = $db->db_num_rows();
+			// Wenn kein ergebnis return 0 sonst ID
+			if ($num_rows > 0)
+			{
+				while ($row = $db->db_fetch_object())
+				{
+					//echo var_dump($row->prestudent_id);
+					$prestudentsOfMaster[] = $row->prestudent_id;
+				}
+
+				//prestudentIds auf Interessentenstatus prüfen
+				foreach ($prestudentsOfMaster as $prestudent_id)
+				{
+					if ($this->getLastPrestudentStatus($prestudent_id) == "Interessent")
+					{
+						return true;
+					}
+				}
+			}
+		}
+		else
+			return false;
 	}
 }
