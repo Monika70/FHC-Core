@@ -91,6 +91,10 @@
 				 WHERE pss.status_kurzbz = '.$INTERESSENT_STATUS.'
 				   AND pss.bewerbung_abgeschicktamum IS NOT NULL
 				   AND ps.person_id = p.person_id
+				   AND (sg.typ IN ('.$STUDIENGANG_TYP.')
+					    OR
+					    sg.studiengang_kz in('.$ADDITIONAL_STG.')
+					   )
 				   AND pss.studiensemester_kurzbz = '.$STUDIENSEMESTER.'
 				 LIMIT 1
 			) AS "StgAbgeschickt",
@@ -246,8 +250,8 @@
 			'Reihungstest angetreten',
 			'Reihungstest angemeldet',
 			'Reihungstest Datum',
-			'ZGV Nation',
-			'ZGV Master Nation',
+			'ZGV Nation BA',
+			'ZGV Nation MA',
 			'InfoCenter Mitarbeiter'
 		),
 		'formatRow' => function($datasetRaw) {
