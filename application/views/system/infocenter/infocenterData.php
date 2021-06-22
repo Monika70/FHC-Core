@@ -143,7 +143,10 @@
 				   AND pss.bewerbung_abgeschicktamum IS NOT NULL
 				 -- AND pss.bestaetigtam IS NULL
 				   AND ps.person_id = p.person_id
-			
+				   AND (sg.typ IN ('.$STUDIENGANG_TYP.')
+					   OR
+					   sg.studiengang_kz in('.$ADDITIONAL_STG.')
+					   )
 				   AND pss.studiensemester_kurzbz = '.$STUDIENSEMESTER.'
 				   AND NOT EXISTS (
 					   SELECT 1
@@ -212,6 +215,13 @@
 			  ORDER BY ps.zgvnation DESC NULLS LAST, ps.prestudent_id DESC
 				 LIMIT 1
 			) AS "ZGVNation",
+			(
+				SELECT ps.zgvmanation
+				FROM public.tbl_prestudent ps
+				 WHERE ps.person_id = p.person_id
+			  ORDER BY ps.zgvmanation DESC NULLS LAST, ps.prestudent_id DESC
+				 LIMIT 1
+			) AS "ZGVMNation",
 			(
 				SELECT tbl_organisationseinheit.bezeichnung
 				FROM public.tbl_benutzerfunktion 
@@ -313,7 +323,8 @@
 			ucfirst($this->p->t('lehre', 'studiengang')).' ('.$this->p->t('global', 'gesendet').')',
 			ucfirst($this->p->t('lehre', 'studiengang')).' ('.$this->p->t('global', 'nichtGesendet').')',
 			ucfirst($this->p->t('lehre', 'studiengang')).' ('.$this->p->t('global', 'aktiv').')',
-			'ZGV Nation',
+			'ZGV Nation BA',
+			'ZGV Nation MA',
 			'InfoCenter Mitarbeiter'
 		),
 		'formatRow' => function($datasetRaw) {
@@ -394,6 +405,11 @@
 			if ($datasetRaw->{'ZGVNation'} == null)
 			{
 				$datasetRaw->{'ZGVNation'} = '-';
+			}
+
+			if ($datasetRaw->{'ZGVMNation'} == null)
+			{
+				$datasetRaw->{'ZGVMNation'} = '-';
 			}
 
 			if ($datasetRaw->{'InfoCenterMitarbeiter'} === 'InfoCenter')

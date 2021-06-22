@@ -110,6 +110,19 @@ var InfocenterPersonDataset = {
 
 		$('button.auswahlAbsageBtn').click(function()
 		{
+			var idsel = $("#filterTableDataset input:checked[name=PersonId\\[\\]]");
+
+			if(idsel.length <= 0)
+				return FHC_DialogLib.alertInfo("Bitte wählen Sie die Personen aus.");
+
+			if($('.absgstatusgrund').val()  === 'null' || $('.auswahlAbsageStg').val() === 'null')
+				return FHC_DialogLib.alertInfo("Bitte den Absagegrund und Studiengang auswählen.");
+
+			$(".absageModalForAll").modal("show");
+		});
+
+		$('#saveAbsageForAll').click(function()
+		{
 			InfocenterPersonDataset.saveAbsageForAll();
 		});
 
@@ -312,14 +325,8 @@ var InfocenterPersonDataset = {
 	{
 		var idsel = $("#filterTableDataset input:checked[name=PersonId\\[\\]]");
 
-		if(idsel.length <= 0)
-			return FHC_DialogLib.alertInfo("Bitte wählen Sie die Personen aus.");
-
 		var statusgrund = $('.absgstatusgrund').val();
 		var studiengang = $('.auswahlAbsageStg').val();
-
-		if(statusgrund === 'null' || studiengang === 'null')
-			return FHC_DialogLib.alertInfo("Bitte den Absagegrund und Studiengang auswählen.");
 
 		var personen = [];
 
@@ -341,8 +348,9 @@ var InfocenterPersonDataset = {
 						FHC_DialogLib.alertError(FHC_AjaxClient.getError(data));
 
 					if (FHC_AjaxClient.hasData(data))
-						FHC_FilterWidget.reloadDataset();
+						FHC_DialogLib.alertSuccess("Erfolgreich gespeichert.")
 
+					$(".absageModalForAll").modal("hide");
 				},
 				errorCallback: function(jqXHR, textStatus, errorThrown) {
 					FHC_DialogLib.alertError(textStatus);

@@ -13,6 +13,7 @@ class InfoCenter extends Auth_Controller
 	const TAETIGKEIT = 'bewerbung';
 	const FREIGABE_MAIL_VORLAGE = 'InfocenterMailFreigabeAssistenz';
 	const ZGVPRUEFUNG_MAIL_VORLAGE = 'InfocenterMailZgvUeberpruefung';
+	const ZGVPRUEFUNG_MAIL_VORLAGE_MASTER = 'InfocenterMailZgvUeberpruefungM';
 
 	const INFOCENTER_URI = 'system/infocenter/InfoCenter'; // URL prefix for this controller
 	const ZGV_UEBERPRUEFUNG_URI = 'system/infocenter/ZGVUeberpruefung';
@@ -79,7 +80,13 @@ class InfoCenter extends Auth_Controller
 			'name' => 'ZGV pruefung added',
 			'message' => 'ZGV with the ID %s was added',
 			'success' => null
-		)
+		),
+		'updatedoctyp' => array(
+			'logtype' => 'Action',
+			'name' => 'Document type updated',
+			'message' => 'Type of Document %s was updated, set to %s',
+			'success' => null
+		),
 	);
 
 	// Name of Interessentenstatus
@@ -104,6 +111,7 @@ class InfoCenter extends Auth_Controller
 				'showZGVDetails' => 'lehre/zgvpruefung:r',
 				'unlockPerson' => 'infocenter:rw',
 				'saveFormalGeprueft' => 'infocenter:rw',
+				'saveDocTyp' => 'infocenter:rw',
 				'getPrestudentData' => 'infocenter:r',
 				'getLastPrestudentWithZgvJson' => 'infocenter:r',
 				'getZgvInfoForPrestudent' => 'infocenter:r',
@@ -135,6 +143,7 @@ class InfoCenter extends Auth_Controller
 
 		// Loads models
 		$this->load->model('crm/Akte_model', 'AkteModel');
+		$this->load->model('crm/Dokument_model', 'DokumentModel');
 		$this->load->model('crm/Prestudent_model', 'PrestudentModel');
 		$this->load->model('crm/Prestudentstatus_model', 'PrestudentstatusModel');
 		$this->load->model('crm/Statusgrund_model', 'StatusgrundModel');
@@ -234,10 +243,14 @@ class InfoCenter extends Auth_Controller
 		$prestudent_id = array('prestudent_id' => $prestudent_id);
 		$status = array('status' => getData($zgv)[0]->status);
 
+		$this->DokumentModel->addOrder('bezeichnung');
+		$dokumentdata = array('dokumententypen' => (getData($this->DokumentModel->load())));
+
 		$data = array_merge(
 			$persondata,
 			$prestudent_id,
-			$status
+			$status,
+			$dokumentdata
 		);
 
 		$origin_page = $this->input->get(self::ORIGIN_PAGE);
@@ -281,9 +294,13 @@ class InfoCenter extends Auth_Controller
 		$persondata = $this->_loadPersonData($person_id);
 		$prestudentdata = $this->_loadPrestudentData($person_id);
 
+		$this->DokumentModel->addOrder('bezeichnung');
+		$dokumentdata = array('dokumententypen' => (getData($this->DokumentModel->load())));
+
 		$data = array_merge(
 			$persondata,
-			$prestudentdata
+			$prestudentdata,
+			$dokumentdata
 		);
 
 		$data[self::FHC_CONTROLLER_ID] = $this->getControllerId();
@@ -518,7 +535,7 @@ class InfoCenter extends Auth_Controller
 	/**
 	 * Sendet bei einer neuen ZGV Prüfung die Mail raus an den Studiengang
 	 */
-	private function sendZgvMail($mail){
+	private function sendZgvMail($mail, $typ){
 		$data = array(
 			'link' => site_url('system/infocenter/ZGVUeberpruefung')
 		);
@@ -526,7 +543,7 @@ class InfoCenter extends Auth_Controller
 		$this->load->helper('hlp_sancho');
 
 		sendSanchoMail(
-			self::ZGVPRUEFUNG_MAIL_VORLAGE,
+			($typ === 'm' ? self::ZGVPRUEFUNG_MAIL_VORLAGE_MASTER : self::ZGVPRUEFUNG_MAIL_VORLAGE),
 			$data,
 			$mail,
 			'ZGV Ueberpruefung',
@@ -619,6 +636,8 @@ class InfoCenter extends Auth_Controller
 
 		$data = $this->_getPersonAndStudiengangFromPrestudent($prestudent_id);
 		$mail = $data['studiengang_mail'];
+		$typ = $data['studiengang_typ'];
+
 		if (hasData($zgv))
 		{
 			$zgv = getData($zgv);
@@ -644,7 +663,7 @@ class InfoCenter extends Auth_Controller
 			$this->_log($person_id, 'updatezgv', array($zgv[0]->zgvpruefung_id, 'pruefung_stg'));
 
 			if (isSuccess($insert))
-				$this->sendZgvMail($mail);
+				$this->sendZgvMail($mail, $typ);
 			elseif (isError($insert))
 				$this->terminateWithJsonError('Fehler beim Speichern');
 		}else
@@ -670,7 +689,7 @@ class InfoCenter extends Auth_Controller
 				$this->_log($person_id, 'newzgv', array($zgvpruefung_id));
 
 				if (isSuccess($result))
-					$this->sendZgvMail($mail);
+					$this->sendZgvMail($mail, $typ);
 				elseif (isError($result))
 					$this->terminateWithJsonError('Fehler beim Speichern');
 			}
@@ -710,8 +729,8 @@ class InfoCenter extends Auth_Controller
 
 		if (hasData($lastStatus) && hasData($statusgrresult))
 		{
-			//check if still Interessent and not freigegeben yet
-			if ($lastStatus->retval[0]->status_kurzbz === self::INTERESSENTSTATUS && !isset($lastStatus->retval[0]->bestaetigtam))
+			//check if still Interessent
+			if ($lastStatus->retval[0]->status_kurzbz === self::INTERESSENTSTATUS)
 			{
 				$result = $this->PrestudentstatusModel->insert(
 					array(
@@ -1162,6 +1181,41 @@ class InfoCenter extends Auth_Controller
 		$this->outputJsonSuccess('success');
 	}
 
+	public function saveDocTyp($person_id)
+	{
+		$akte_id = $this->input->post('akte_id');
+		$typ = $this->input->post('typ');
+
+		if (!isset($akte_id) || !isset($typ) || !isset($person_id))
+			$this->terminateWithJsonError("Nicht alle sind Parameter übergeben worden");
+
+		$akte = $this->AkteModel->load($akte_id);
+
+		if (!hasData($akte))
+			$this->terminateWithJsonError("Fehler beim Laden der Akte");
+
+		$result = $this->AkteModel->update($akte_id, array('dokument_kurzbz' => $typ));
+
+		if (!isSuccess($result))
+			$this->terminateWithJsonError("Fehler beim Update aufgetreten");
+
+		$dokument = $this->DokumentModel->load($akte->retval[0]->dokument_kurzbz);
+
+		if (!hasData($dokument))
+			$this->terminateWithJsonError("Fehler beim Laden des Dokumententypes");
+
+		$this->_log(
+			$person_id,
+			'updatedoctyp',
+			array(
+				isEmptyString($akte->retval[0]->titel) ? $akte->retval[0]->bezeichnung : $akte->retval[0]->titel,
+				isEmptyString($dokument->retval[0]->bezeichnung) ? $dokument->retval[0]->dokument_kurbz : $dokument->retval[0]->bezeichnung
+			)
+		);
+
+		$this->outputJsonSuccess('success');
+	}
+
 	// -----------------------------------------------------------------------------------------------------------------
 	// Private methods
 
@@ -1488,7 +1542,7 @@ class InfoCenter extends Auth_Controller
 	 * @param $person_id
 	 * @return array
 	 */
-	public function _loadPersonData($person_id)
+	private function _loadPersonData($person_id)
 	{
 		$locked = $this->PersonLockModel->checkIfLocked($person_id, self::APP);
 
@@ -1623,6 +1677,8 @@ class InfoCenter extends Auth_Controller
 			$zgvpruefung->infoonly = !isset($zgvpruefung->prestudentstatus)
 				|| isset($zgvpruefung->prestudentstatus->bestaetigtam)
 				|| $zgvpruefung->prestudentstatus->status_kurzbz != self::INTERESSENTSTATUS;
+
+			$zgvpruefung->abgewiesener = $zgvpruefung->prestudentstatus->status_kurzbz === self::ABGEWIESENERSTATUS;
 
 			//wether prestudent was freigegeben for RT/Stg
 			$zgvpruefung->isRtFreigegeben = false;
@@ -1824,8 +1880,9 @@ class InfoCenter extends Auth_Controller
 		$studiengang_kurzbz = $prestudentdata->studiengang;
 		$studiengang_bezeichnung = $prestudentdata->studiengangbezeichnung;
 		$studiengang_mail = $prestudentdata->studiengangmail;
+		$studiengang_typ = $prestudentdata->studiengangtyp;
 
-		return array('person_id' => $person_id, 'studiengang_kurzbz' => $studiengang_kurzbz, 'studiengang_bezeichnung' => $studiengang_bezeichnung, 'studiengang_mail' => $studiengang_mail);
+		return array('person_id' => $person_id, 'studiengang_kurzbz' => $studiengang_kurzbz, 'studiengang_bezeichnung' => $studiengang_bezeichnung, 'studiengang_mail' => $studiengang_mail, 'studiengang_typ' => $studiengang_typ);
 	}
 
 	/**
@@ -1987,13 +2044,14 @@ class InfoCenter extends Auth_Controller
 		$statusgrund = $this->input->post('statusgrund');
 		$studiengang = $this->input->post('studiengang');
 		$personen = $this->input->post('personen');
+		$studienSemester = $this->variablelib->getVar('infocenter_studiensemester');
 
 		if ($statusgrund === 'null' || $studiengang === 'null' || empty($personen))
 			$this->terminateWithJsonError("Bitte Statusgrund, Studiengang und Personen auswählen.");
 
 		foreach($personen as $person)
 		{
-			$prestudent = $this->PrestudentModel->getPrestudentByStudiengangAndPerson($studiengang, $person);
+			$prestudent = $this->PrestudentModel->getPrestudentByStudiengangAndPerson($studiengang, $person, $studienSemester);
 
 			if(!hasData($prestudent))
 				continue;

@@ -4,6 +4,7 @@ const CALLED_PATH = FHC_JS_DATA_STORAGE_OBJECT.called_path;
 const CONTROLLER_URL = BASE_URL + "/"+CALLED_PATH;
 const RTFREIGABE_MESSAGE_VORLAGE = "InfocenterRTfreigegeben";
 const RTFREIGABE_MESSAGE_VORLAGE_MASTER = "InfocenterRTfreigegebenM";
+const RTFREIGABE_MESSAGE_VORLAGE_MASTER_ENGLISCH = "InfocenterRTfreigegebenMEnglisch";
 const RTFREIGABE_MESSAGE_VORLAGE_QUER = "InfocenterRTfreigegQuer";
 const RTFREIGABE_MESSAGE_VORLAGE_QUER_KURZ = "InfocenterRTfreigegQuerKurz";
 const STGFREIGABE_MESSAGE_VORLAGE = "InfocenterSTGfreigegeben";
@@ -116,7 +117,13 @@ $(document).ready(function ()
 		{
 			$('html,body').animate({scrollTop:0},250,'linear');
 		}
-	)
+	);
+
+	$('.aktenid').change(function(){
+		var akteid = InfocenterDetails._getPrestudentIdFromElementId(this.id);
+		var typ = $(this).val();
+		InfocenterDetails.saveDocTyp(personid, akteid, typ);
+	});
 });
 
 var InfocenterDetails = {
@@ -682,10 +689,12 @@ var InfocenterDetails = {
 					else
 					{
 						//send normal RTfreigabe message
-						if (receiverPrestudent.studiengangtyp === 'm')
-						{
-							vorlage = RTFREIGABE_MESSAGE_VORLAGE_MASTER
-						}else
+						if (receiverPrestudent.studiengangtyp === 'm') {
+							if (receiverPrestudentstatus.sprache === 'English')
+								vorlage = RTFREIGABE_MESSAGE_VORLAGE_MASTER_ENGLISCH
+							else
+								vorlage = RTFREIGABE_MESSAGE_VORLAGE_MASTER
+						} else
 						{
 							vorlage = RTFREIGABE_MESSAGE_VORLAGE
 						}
@@ -701,6 +710,12 @@ var InfocenterDetails = {
 				{
 					if (receiverPrestudent.studiengangtyp === 'm' && (freigabedata.statusgrundbezeichnung === 'Ergänzungsprüfungen' || freigabedata.statusgrundbezeichnung === 'Supplementary exams'))
 					{
+						msgvars = {
+							'studiengangbezeichnung': studiengangbezeichnung,
+							'studiengangbezeichnung_englisch': studiengangbezeichnung_englisch,
+							'orgform_deutsch': orgform_deutsch,
+							'orgform_englisch': orgform_englisch
+						}
 						InfocenterDetails.sendFreigabeMessage(prestudent_id, STGFREIGABE_MESSAGE_VORLAGE_MASTER, msgvars);
 					}else
 					{
@@ -731,6 +746,25 @@ var InfocenterDetails = {
 				},
 				errorCallback: function() {
 					FHC_DialogLib.alertWarning("Freigabe message could not be sent");
+				}
+			}
+		);
+	},
+
+	saveDocTyp: function(personid, akteid, typ)
+	{
+		FHC_AjaxClient.ajaxCallPost(
+			CALLED_PATH + "/saveDocTyp/"+encodeURIComponent(personid),
+			{
+				"akte_id": akteid,
+				"typ" : typ
+			},
+			{
+				successCallback: function(data, textStatus, jqXHR) {
+					InfocenterDetails._refreshLog();
+				},
+				errorCallback: function() {
+					FHC_DialogLib.alertWarning("Document type could not be updated");
 				}
 			}
 		);
