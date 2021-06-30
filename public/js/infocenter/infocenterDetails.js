@@ -9,6 +9,7 @@ const RTFREIGABE_MESSAGE_VORLAGE_QUER = "InfocenterRTfreigegQuer";
 const RTFREIGABE_MESSAGE_VORLAGE_QUER_KURZ = "InfocenterRTfreigegQuerKurz";
 const STGFREIGABE_MESSAGE_VORLAGE = "InfocenterSTGfreigegeben";
 const STGFREIGABE_MESSAGE_VORLAGE_MASTER = "InfocenterSTGfreigegebenM";
+const STGFREIGABE_MESSAGE_VORLAGE_MASTER_ENGLISCH = "InfocenterSTGfreigegebenMEng";
 
 //Statusgründe for which no Studiengang Freigabe Message should be sent
 const FIT_PROGRAMM_STUDIENGAENGE = [10021, 10027];
@@ -21,9 +22,6 @@ const ONHOLDNAME = 'onhold';
  */
 $(document).ready(function ()
 {
-	//initialise table sorter
-	Tablesort.addTablesorter("doctable", [[2, 1], [1, 0]], ["zebra"]);
-	Tablesort.addTablesorter("nachgdoctable", [[2, 0], [1, 1]], ["zebra"]);
 
 	InfocenterDetails._formatMessageTable();
 	InfocenterDetails._formatNotizTable();
@@ -35,15 +33,6 @@ $(document).ready(function ()
 	$("#sendmsglink").click(function ()
 	{
 		$("#sendmsgform").submit();
-	});
-
-	//add click events to "formal geprüft" checkboxes
-	$(".prchbox").click(function ()
-	{
-		var boxid = this.id;
-		var akteid = InfocenterDetails._getPrestudentIdFromElementId(boxid);
-		var checked = this.checked;
-		InfocenterDetails.saveFormalGeprueft(personid, akteid, checked)
 	});
 
 	//add click events to zgv Prüfung section
@@ -119,11 +108,6 @@ $(document).ready(function ()
 		}
 	);
 
-	$('.aktenid').change(function(){
-		var akteid = InfocenterDetails._getPrestudentIdFromElementId(this.id);
-		var typ = $(this).val();
-		InfocenterDetails.saveDocTyp(personid, akteid, typ);
-	});
 });
 
 var InfocenterDetails = {
@@ -138,43 +122,6 @@ var InfocenterDetails = {
 
 	// -----------------------------------------------------------------------------------------------------------------
 	// ajax calls
-	saveFormalGeprueft: function(personid, akteid, checked)
-	{
-		FHC_AjaxClient.ajaxCallPost(
-			CALLED_PATH + '/saveFormalGeprueft/' + encodeURIComponent(personid),
-			{
-				akte_id: akteid,
-				formal_geprueft: checked
-			},
-			{
-				successCallback: function(data, textStatus, jqXHR) {
-					if (FHC_AjaxClient.hasData(data))
-					{
-						var timestamp = data.retval[0];
-						if (timestamp === "")
-						{
-							$("#formalgeprueftam_" + akteid).text("");
-						}
-						else
-						{
-							var fgdatum = $.datepicker.parseDate("yy-mm-dd", timestamp);
-							var gerfgdatum = $.datepicker.formatDate("dd.mm.yy", fgdatum);
-							$("#formalgeprueftam_" + akteid).text(gerfgdatum);
-						}
-						//refresh doctable tablesorter, formal geprueft changed!
-						$("#doctable").trigger("update");
-						InfocenterDetails._refreshLog();
-					}
-					else
-					{
-						InfocenterDetails._genericSaveError();
-					}
-				},
-				errorCallback: InfocenterDetails._genericSaveError,
-				veilTimeout: 0
-			}
-		);
-	},
 	saveBewPriorisierung: function(data)
 	{
 		FHC_AjaxClient.ajaxCallPost(
@@ -642,6 +589,7 @@ var InfocenterDetails = {
 			var ausbildungssemester = receiverPrestudentstatus.ausbildungssemester;
 			var studiengangbezeichnung = receiverPrestudentstatus.studiengangbezeichnung;
 			var studiengangbezeichnung_englisch = receiverPrestudentstatus.studiengangbezeichnung_englisch;
+			var vorlage = null;
 
 			var orgform_deutsch, orgform_englisch;
 			orgform_deutsch = orgform_englisch = "";
@@ -679,7 +627,6 @@ var InfocenterDetails = {
 				}
 				else //not already for RT freigegeben - send RTfreigabe message
 				{
-					var vorlage = null;
 					//send Quereinstiegsmessage if later Ausbildungssemester
 					if (ausbildungssemester > 1)
 					{
@@ -705,22 +652,25 @@ var InfocenterDetails = {
 			}
 			else
 			{
-				//if Freigabe to Studiengang, send StgFreigabe Message if not already sent and allowed to send
-				if (!stgFreigegeben && receiverPrestudent.sendStgFreigabeMsg === true)
+				if (receiverPrestudent.studiengangtyp === 'm' && (freigabedata.statusgrundbezeichnung === 'Ergänzungsprüfungen' || freigabedata.statusgrundbezeichnung === 'Supplementary exams'))
 				{
-					if (receiverPrestudent.studiengangtyp === 'm' && (freigabedata.statusgrundbezeichnung === 'Ergänzungsprüfungen' || freigabedata.statusgrundbezeichnung === 'Supplementary exams'))
-					{
-						msgvars = {
-							'studiengangbezeichnung': studiengangbezeichnung,
-							'studiengangbezeichnung_englisch': studiengangbezeichnung_englisch,
-							'orgform_deutsch': orgform_deutsch,
-							'orgform_englisch': orgform_englisch
-						}
-						InfocenterDetails.sendFreigabeMessage(prestudent_id, STGFREIGABE_MESSAGE_VORLAGE_MASTER, msgvars);
-					}else
-					{
-						InfocenterDetails.sendFreigabeMessage(prestudent_id, STGFREIGABE_MESSAGE_VORLAGE, msgvars);
+					msgvars = {
+						'studiengangbezeichnung': studiengangbezeichnung,
+						'studiengangbezeichnung_englisch': studiengangbezeichnung_englisch,
+						'orgform_deutsch': orgform_deutsch,
+						'orgform_englisch': orgform_englisch
 					}
+					if (receiverPrestudentstatus.sprache === 'English')
+						vorlage = STGFREIGABE_MESSAGE_VORLAGE_MASTER_ENGLISCH
+					else
+						vorlage = STGFREIGABE_MESSAGE_VORLAGE_MASTER
+
+					InfocenterDetails.sendFreigabeMessage(prestudent_id, vorlage, msgvars);
+				}
+				//if Freigabe to Studiengang, send StgFreigabe Message if not already sent and allowed to send
+				else if (!stgFreigegeben && receiverPrestudent.sendStgFreigabeMsg === true)
+				{
+					InfocenterDetails.sendFreigabeMessage(prestudent_id, STGFREIGABE_MESSAGE_VORLAGE, msgvars);
 				}
 			}
 		};
@@ -746,25 +696,6 @@ var InfocenterDetails = {
 				},
 				errorCallback: function() {
 					FHC_DialogLib.alertWarning("Freigabe message could not be sent");
-				}
-			}
-		);
-	},
-
-	saveDocTyp: function(personid, akteid, typ)
-	{
-		FHC_AjaxClient.ajaxCallPost(
-			CALLED_PATH + "/saveDocTyp/"+encodeURIComponent(personid),
-			{
-				"akte_id": akteid,
-				"typ" : typ
-			},
-			{
-				successCallback: function(data, textStatus, jqXHR) {
-					InfocenterDetails._refreshLog();
-				},
-				errorCallback: function() {
-					FHC_DialogLib.alertWarning("Document type could not be updated");
 				}
 			}
 		);
