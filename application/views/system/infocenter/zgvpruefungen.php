@@ -381,24 +381,24 @@
 									</div>
 								</div>
 							</div><!-- /.column-absage -->
-							<?php
-							$disabled = $disabledStg = $disabledTxt = $disabledStgTxt = '';
-							if (isEmptyString($zgvpruefung->prestudentstatus->bewerbung_abgeschicktamum))
-							{
-								$disabled = $disabledStg = 'disabled';
-								$disabledTxt = $disabledStgTxt = $this->p->t('infocenter', 'bewerbungMussAbgeschickt');
-							}
+								<?php
+								$disabled = $disabledStg = $disabledTxt = $disabledStgTxt = '';
+								if (isEmptyString($zgvpruefung->prestudentstatus->bewerbung_abgeschicktamum))
+								{
+									$disabled = $disabledStg = 'disabled';
+									$disabledTxt = $disabledStgTxt = $this->p->t('infocenter', 'bewerbungMussAbgeschickt');
+								}
 
-							if ($studiengangtyp !== 'b')
-							{
-								$disabled = 'disabled';
-								$disabledTxt = $this->p->t('infocenter', 'nurBachelorFreigeben');
+								if ($studiengangtyp !== 'b' && $studiengangtyp !== 'm')
+								{
+									$disabled = 'disabled';
+									$disabledTxt = $this->p->t('infocenter', 'nurBachelorMasterFreigeben');
 
 								// FIT-Lehrgänge: exceptions, can be freigegeben in Infocenter
 								if (!in_array($studiengang_kz, $fit_programme_studiengaenge))
 								{
 									$disabledStg = 'disabled';
-									$disabledStgTxt = $this->p->t('infocenter', 'nurBachelorFreigeben');
+									$disabledStgTxt = $this->p->t('infocenter', 'nurBachelorMasterFreigeben');
 								}
 							}
 							if (!$infoonly) :
