@@ -93,6 +93,7 @@ class InfoCenter extends Auth_Controller
 	const INTERESSENTSTATUS = 'Interessent';
 	const ABGEWIESENERSTATUS = 'Abgewiesener';
 	const BEWERBERSTATUS = 'Bewerber';
+	const WARTENDER = 'Wartender';
 
 	// Statusgruende for which no Studiengangsfreigabemessage should be sent
 	private $_statusgruendeNoStgFreigabeMessage = array('FIT Programm', 'FIT program', 'FIT programme');
@@ -734,7 +735,9 @@ class InfoCenter extends Auth_Controller
 		if (hasData($lastStatus) && hasData($statusgrresult))
 		{
 			//check if still Interessent
-			if ($lastStatus->retval[0]->status_kurzbz === self::INTERESSENTSTATUS)
+			if ($lastStatus->retval[0]->status_kurzbz === self::INTERESSENTSTATUS
+				|| $lastStatus->retval[0]->status_kurzbz === self::BEWERBERSTATUS
+				|| $lastStatus->retval[0]->status_kurzbz === self::WARTENDER)
 			{
 				$result = $this->PrestudentstatusModel->insert(
 					array(
@@ -2116,7 +2119,8 @@ class InfoCenter extends Auth_Controller
 		$this->load->model('organisation/Studiengang_model', 'StudiengangModel');
 
 		$statusgruende = $this->StatusgrundModel->getStatus(self::ABGEWIESENERSTATUS, true)->retval;
-		$studiengaenge = $this->StudiengangModel->getStudiengaengeWithOrgForm(['b', 'm']);
+		$studienSemester = $this->variablelib->getVar('infocenter_studiensemester');
+		$studiengaenge = $this->StudiengangModel->getStudiengaengeWithOrgForm(['b', 'm'], $studienSemester);
 
 		$data = array (
 			'statusgruende' => $statusgruende,
