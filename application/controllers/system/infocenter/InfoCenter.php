@@ -93,6 +93,7 @@ class InfoCenter extends Auth_Controller
 	const INTERESSENTSTATUS = 'Interessent';
 	const ABGEWIESENERSTATUS = 'Abgewiesener';
 	const BEWERBERSTATUS = 'Bewerber';
+	const WARTENDER = 'Wartender';
 
 	// Statusgruende for which no Studiengangsfreigabemessage should be sent
 	private $_statusgruendeNoStgFreigabeMessage = array('FIT Programm', 'FIT program', 'FIT programme');
@@ -112,6 +113,7 @@ class InfoCenter extends Auth_Controller
 				'unlockPerson' => 'infocenter:rw',
 				'saveFormalGeprueft' => 'infocenter:rw',
 				'saveDocTyp' => 'infocenter:rw',
+				'saveNachreichung' => 'infocenter:rw',
 				'getPrestudentData' => 'infocenter:r',
 				'getLastPrestudentWithZgvJson' => 'infocenter:r',
 				'getZgvInfoForPrestudent' => 'infocenter:r',
@@ -126,6 +128,7 @@ class InfoCenter extends Auth_Controller
 				'updateNotiz' => 'infocenter:rw',
 				'reloadZgvPruefungen' => 'infocenter:r',
 				'reloadMessages' => 'infocenter:r',
+				'reloadDoks' => 'infocenter:r',
 				'reloadNotizen' => 'infocenter:r',
 				'reloadLogs' => 'infocenter:r',
 				'outputAkteContent' => 'infocenter:r',
@@ -242,6 +245,7 @@ class InfoCenter extends Auth_Controller
 		$persondata = $this->_loadPersonData(getData($prestudentexists)[0]->person_id);
 		$prestudent_id = array('prestudent_id' => $prestudent_id);
 		$status = array('status' => getData($zgv)[0]->status);
+		$prestudent_data = $this->_getPersonAndStudiengangFromPrestudent($prestudent_id);
 
 		$this->DokumentModel->addOrder('bezeichnung');
 		$dokumentdata = array('dokumententypen' => (getData($this->DokumentModel->load())));
@@ -250,7 +254,8 @@ class InfoCenter extends Auth_Controller
 			$persondata,
 			$prestudent_id,
 			$status,
-			$dokumentdata
+			$dokumentdata,
+			$prestudent_data
 		);
 
 		$origin_page = $this->input->get(self::ORIGIN_PAGE);
@@ -730,7 +735,9 @@ class InfoCenter extends Auth_Controller
 		if (hasData($lastStatus) && hasData($statusgrresult))
 		{
 			//check if still Interessent
-			if ($lastStatus->retval[0]->status_kurzbz === self::INTERESSENTSTATUS)
+			if ($lastStatus->retval[0]->status_kurzbz === self::INTERESSENTSTATUS
+				|| $lastStatus->retval[0]->status_kurzbz === self::BEWERBERSTATUS
+				|| $lastStatus->retval[0]->status_kurzbz === self::WARTENDER)
 			{
 				$result = $this->PrestudentstatusModel->insert(
 					array(
@@ -1027,6 +1034,13 @@ class InfoCenter extends Auth_Controller
 		$this->load->view('system/infocenter/logs.php', array('logs' => $logs));
 	}
 
+	public function reloadDoks($person_id)
+	{
+		$dokumente_nachgereicht = $this->AkteModel->getAktenWithDokInfo($person_id, null, true);
+
+		$this->load->view('system/infocenter/dokNachzureichend.php', array('dokumente_nachgereicht' => $dokumente_nachgereicht->retval));
+	}
+
 	/**
 	 * Outputs content of an Akte, sends appropriate headers (so the document can be downloaded)
 	 * @param $akte_id
@@ -1216,6 +1230,82 @@ class InfoCenter extends Auth_Controller
 		$this->outputJsonSuccess('success');
 	}
 
+	public function saveNachreichung($person_id)
+	{
+		$nachreichungAm = $this->input->post('nachreichungAm');
+		$nachreichungAnmerkung = empty($this->input->post('nachreichungAnmerkung')) ? NULL : $this->input->post('nachreichungAnmerkung');
+		$typ = $this->input->post('typ');
+
+		$allowedTypes = [
+			'VorlSpB2' => 'SprachB2',
+			'ZgvBaPre' => 'zgv_bakk',
+			'ZgvMaPre' => 'zgv_mast'
+		];
+
+		if (!in_array($typ, array_keys($allowedTypes)))
+			$this->terminateWithJsonError($this->p->t('ui', 'fehlerBeimSpeichern'));
+
+		if (empty($nachreichungAm))
+			$this->terminateWithJsonError($this->p->t('infocenter', 'datumUngueltig'));
+
+		if (!preg_match('/^\d{2}\.\d{2}\.(\d{2}|\d{4})$/ ', $nachreichungAm))
+		{
+			$this->terminateWithJsonError($this->p->t('infocenter', 'datumUngueltig'));
+		}
+		else
+		{
+			$ds = explode('.', $nachreichungAm);
+			if (! checkdate($ds[1], $ds[0], $ds[2]))
+			{
+				$this->terminateWithJsonError($this->p->t('infocenter', 'datumUngueltig'));
+			}
+		}
+
+		$nachreichungAm = (date_format(date_create($nachreichungAm), 'Y-m-d'));
+
+		$today = date('Y-m-d H:i:s');
+
+		if($nachreichungAm < $today)
+			$this->terminateWithJsonError($this->p->t('infocenter', 'nachreichDatumNichtVergangenheit'));
+
+
+		$akte = $this->AkteModel->loadWhere(array('person_id' => $person_id, 'dokument_kurzbz' => $allowedTypes[$typ]));
+
+		if (hasData($akte)) {
+			$akte = getData($akte)[0];
+			$this->AkteModel->update(
+				$akte->akte_id,
+				array(
+					'anmerkung' => $nachreichungAnmerkung,
+					'updateamum' => $today,
+					'updatevon' => get_uid(),
+					'nachgereicht' => true,
+					'nachgereicht_am' => $nachreichungAm
+				)
+			);
+		}
+		else
+		{
+			$this->AkteModel->insert(
+				array(
+					'dokument_kurzbz' => $allowedTypes[$typ],
+					'person_id' => $person_id,
+					'erstelltam' => NULL,
+					'gedruckt' => false,
+					'anmerkung' => $nachreichungAnmerkung,
+					'updateamum' => $today,
+					'updatevon' => get_uid(),
+					'insertamum' => $today,
+					'insertvon' => get_uid(),
+					'uid' => NULL,
+					'nachgereicht' => true,
+					'nachgereicht_am' => $nachreichungAm
+				)
+			);
+		}
+
+		$this->outputJsonSuccess("Done!");
+	}
 	// -----------------------------------------------------------------------------------------------------------------
 	// Private methods
 
@@ -2029,7 +2119,8 @@ class InfoCenter extends Auth_Controller
 		$this->load->model('organisation/Studiengang_model', 'StudiengangModel');
 
 		$statusgruende = $this->StatusgrundModel->getStatus(self::ABGEWIESENERSTATUS, true)->retval;
-		$studiengaenge = $this->StudiengangModel->getStudiengaengeWithOrgForm(['b', 'm']);
+		$studienSemester = $this->variablelib->getVar('infocenter_studiensemester');
+		$studiengaenge = $this->StudiengangModel->getStudiengaengeWithOrgForm(['b', 'm'], $studienSemester);
 
 		$data = array (
 			'statusgruende' => $statusgruende,

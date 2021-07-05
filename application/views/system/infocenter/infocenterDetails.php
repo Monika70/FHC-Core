@@ -26,7 +26,8 @@
 				'public/js/tablesort/tablesort.js',
 				'public/js/infocenter/messageList.js',
 				'public/js/infocenter/infocenterDetails.js',
-				'public/js/infocenter/zgvUeberpruefung.js'
+				'public/js/infocenter/zgvUeberpruefung.js',
+				'public/js/infocenter/docUeberpruefung.js'
 			),
 			'phrases' => array(
 				'infocenter' => array(
@@ -48,7 +49,9 @@
 					'zgvInPruefung',
 					'zgvErfuellt',
 					'zgvNichtErfuellt',
-					'zgvErfuelltPruefung'
+					'zgvErfuelltPruefung',
+					'datumUngueltig',
+					'nachreichDatumNichtVergangenheit'
 				),
 				'ui' => array(
 					'gespeichert',
@@ -126,6 +129,9 @@
 							</div>
 							<div class="panel-body">
 								<?php $this->load->view('system/infocenter/dokpruefung.php'); ?>
+								<div id="nachzureichendeDoks">
+									<?php $this->load->view('system/infocenter/dokNachzureichend.php'); ?>
+								</div>
 							</div> <!-- ./panel-body -->
 						</div> <!-- ./panel -->
 					</div> <!-- ./column -->
