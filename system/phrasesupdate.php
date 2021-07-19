@@ -11463,7 +11463,7 @@ Any unusual occurrences
 				'sprache' => 'German',
 				'text' => "Bitte laden Sie den Antrag in deutscher oder englischer Sprache für das
                 <ul>
-                    <li><u>Wintersemester spätestens bis 15. September</u></li>
+                    <li><u>Wintersemester spätestens bis 22. September</u></li>
                     <li><u>Sommersemester spätestens bis 22. Februar</u> hoch.</li>
                 </ul>
                 <br>Die Entscheidung über den Antrag erfolgt in der Regel innerhalb von zwei Wochen ab dem 15. September
@@ -11476,7 +11476,7 @@ Any unusual occurrences
 				'sprache' => 'English',
 				'text' => "Please upload the application in German or English
                 <ul>
-                    <li><u>by September 15th for the winter semester</u></li>
+                    <li><u>by September 22nd for the winter semester</u></li>
                     <li><u>by February 22nd for the summer semester</u> at the latest.</li>
                 </ul>
                 <br>The decision on the application is usually made within two weeks from September 15 (winter semester) or February 22 (summer semester).
@@ -11515,17 +11515,17 @@ array(
 			array(
 				'sprache' => 'German',
 				'text' => "Bitte laden Sie mehrere Nachweis-Dokumente zusammengefasst in einem PDF-Dokument hoch.
-					<br><br>Falls Sie für den Nachweis der Gleichwertigkeit in Bundesgesetzblättern veröffentlichte Lehrpläne (vgl. HTL, HAK…) verwenden,
-					laden Sie bitte nur die für die Anrechnung relevanten Teile hoch oder markieren Sie diese entsprechend.
-					<br><br><span class=\"text-danger\">Falls diese Informationen nicht enthalten sind, kann der Antrag auch abgelehnt werden.</span>",
+					<br><br>Falls für den Nachweis der Gleichwertigkeit in Bundesgesetzblättern veröffentlichte Lehrpläne (vgl. HTL, HAK…) verwendet werden,
+					sind die für die Anrechnung relevanten Teile entsprechend zu <b>markieren</b>.
+					<br><br><span class=\"text-danger\">Falls das nicht gemacht wird, wird der Antrag aus formalen Gründen <b>abgelehnt</b>.</span>",
 				'description' => '',
 				'insertvon' => 'system'
 			),
 			array(
 				'sprache' => 'English',
 				'text' => "Please combine and upload more than one verification document in one PDF document.
-				<br><br>If you use curricula published in federal law gazettes (cf. HTL, HAK ...) to prove equivalence, please upload only the parts relevant for recognition or mark them accordingly.
-				<br><br><span class=\"text-danger\">If this information is not included, the application might be rejected.</span>",
+				<br><br>If you use curricula published in federal law gazettes (cf. HTL, HAK ...) to prove equivalence, please <b>mark</b> the parts relevant for recognition accordingly.
+				<br><br><span class=\"text-danger\">If this information is not included, the application must be <b>rejected</b>.</span>",
 				'description' => '',
 				'insertvon' => 'system'
 			)
@@ -11611,7 +11611,7 @@ array(
 				'sprache' => 'German',
 				'text' => "Die Entscheidung über den Antrag durch die Studiengangsleitung sollte
                 <ul>
-                    <li><u>innerhalb von zwei Wochen ab dem 15. September (Wintersemester)</u></li>
+                    <li><u>innerhalb von zwei Wochen ab dem 22. September (Wintersemester)</u></li>
                     <li><u>innerhalb von zwei Wochen ab dem 22. Februar (Sommersemester)</u> erfolgen.</li>
                 </ul>",
 				'description' => '',
@@ -11621,7 +11621,7 @@ array(
 				'sprache' => 'English',
 				'text' => "The decision on the application is usually made by the program director
                 <ul>
-                    <li><u>within two weeks from September 15 (winter semester)</u></li>
+                    <li><u>within two weeks from September 22 (winter semester)</u></li>
                     <li><u>within two weeks from February 22 (summer semester)</u>.</li>
                 </ul>",
 				'description' => '',
