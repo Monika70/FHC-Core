@@ -2317,8 +2317,6 @@ class prestudent extends person
 				AND
 					typ ='m'
 				AND
-					zgvmadatum IS NULL
-				AND
 					get_rolle_prestudent(prestudent_id, null) = 'Interessent';";
 
 		if ($db->db_query($qry))
