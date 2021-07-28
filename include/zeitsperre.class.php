@@ -519,6 +519,47 @@ class zeitsperre extends basis_db
 	{
 		return $this->bisdatum;
 	}
-
+	
+	/**
+	 * Laedt einen Zeitsperretyp.
+	 *
+	 * @param $zeitsperretyp_kurzbz
+	 * @return Gibt Zeitsperretyp als Objekt zurück. True wenn ok, false im Fehlerfall.
+	 */
+	public function loadZeitsperretyp($zeitsperretyp_kurzbz)
+	{
+		if(!is_string($zeitsperretyp_kurzbz))
+		{
+			$this->errormsg = 'zeitsperretyp muß ein String sein';
+			return false;
+		}
+		
+		$qry = "SELECT * FROM campus.tbl_zeitsperretyp WHERE zeitsperretyp_kurzbz = ". $this->db_add_param($zeitsperretyp_kurzbz);
+		
+		if(!$this->db_query($qry))
+		{
+			$this->errormsg = 'Fehler beim Laden des Datensatzes';
+			return false;
+		}
+		
+		if($row = $this->db_fetch_object())
+		{
+			$obj = new StdClass();
+			$obj->zeitsperretyp_kurzbz = $row->zeitsperretyp_kurzbz;
+			$obj->beschreibung = $row->beschreibung;
+			$obj->farbe = $row->farbe;
+			
+			$this->result[]= $obj;
+		}
+		else
+		{
+			$this->errormsg = 'Es ist kein Datensatz mit dieser ID vorhanden';
+			return false;
+		}
+		
+		return true;
+	}
+	
+	
 }
 ?>
