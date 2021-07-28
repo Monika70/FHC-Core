@@ -553,7 +553,7 @@ class zeitsperre extends basis_db
 		}
 		else
 		{
-			$this->errormsg = 'Es ist kein Datensatz mit dieser ID vorhanden';
+			$this->errormsg = 'Zeitsperretyp konnte nicht geladen werden';
 			return false;
 		}
 		

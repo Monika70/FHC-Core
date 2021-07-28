@@ -457,15 +457,20 @@ if(isset($_GET['type']) && ($_GET['type']=='edit_sperre' || $_GET['type']=='new_
 		$zeitsperre->vertretung_uid = $_POST['vertretung_uid'];
 		$zeitsperre->updateamum = date('Y-m-d H:i:s');
 		$zeitsperre->updatevon = $uid;
+		
+		// Zeitsperretyp Beschreibung
+		$zeitsperre->loadZeitsperretyp($zeitsperre->zeitsperretyp_kurzbz);
+		$zeitsperre->beschreibung = $zeitsperre->result[0]->beschreibung;
 
 		if($zeitsperre->save())
 		{
 			echo "<h3>".$p->t('global/erfolgreichgespeichert')."</h3>";
 			if(URLAUB_TOOLS)
 			{
-				if($zeitsperre->new && $zeitsperre->zeitsperretyp_kurzbz=='Urlaub')
+				//Beim Anlegen von neuen Urlauben oder neuem Zeitausgleich wird ein Mail an den Vorgesetzten versendet
+				if($zeitsperre->new && ($zeitsperre->zeitsperretyp_kurzbz=='Urlaub' || $zeitsperre->zeitsperretyp_kurzbz == 'ZA')
+				|| !$zeitsperre->new && $zeitsperre->zeitsperretyp_kurzbz == 'ZA')
 				{
-					//Beim Anlegen von neuen Urlauben wird ein Mail an den Vorgesetzten versendet um diesen Freizugeben
 					$prsn = new person();
 
                     $vorgesetzter = $ma->getVorgesetzte($uid);
@@ -491,17 +496,61 @@ if(isset($_GET['type']) && ($_GET['type']=='edit_sperre' || $_GET['type']=='new_
 							$jahr = $datum_obj->formatDatum($zeitsperre->vondatum, 'Y')+1;
 						else
 							$jahr = $datum_obj->formatDatum($zeitsperre->vondatum, 'Y');
+						
+						$message = "Dies ist eine automatische Mail! \n";
 
-						$message = "Dies ist eine automatische Mail! \n".
-								   "$benutzer->nachname $benutzer->vorname hat einen neuen Urlaub eingetragen:\n".
-								   "$zeitsperre->bezeichnung von ".$datum_obj->formatDatum($zeitsperre->vondatum,'d.m.Y')." bis ".$datum_obj->formatDatum($zeitsperre->bisdatum,'d.m.Y')."\n\n".
-								   "Sie können diesen unter folgender Adresse freigeben:\n".
-								   APP_ROOT."cis/private/profile/urlaubsfreigabe.php?uid=$uid&year=".$jahr;
+						// Wenn ein neuer Urlaub eingetragen wurde, Freigabemail-Text
+						if ($zeitsperre->zeitsperretyp_kurzbz=='Urlaub')
+						{
+							$message.= "$benutzer->nachname $benutzer->vorname hat einen neuen Urlaub eingetragen:\n".
+								(!empty($zeitsperre->bezeichnung) ? $zeitsperre->bezeichnung : $zeitsperre->beschreibung).
+								" von ".$datum_obj->formatDatum($zeitsperre->vondatum,'d.m.Y').
+								" bis ".$datum_obj->formatDatum($zeitsperre->bisdatum,'d.m.Y'). "\n\n".
+							   	"Sie können diesen unter folgender Adresse freigeben:\n".
+							   	APP_ROOT."cis/private/profile/urlaubsfreigabe.php?uid=$uid&year=".$jahr;
+							
+							$subject = "Freigabeansuchen";
+						}
+						
+						// Wenn ein Zeitausgleich eingetragen wurde...
+						if ($zeitsperre->zeitsperretyp_kurzbz == 'ZA')
+						{
+							// ...Mail-Text für neuen Zeitausgleich
+							if ($zeitsperre->new)
+							{
+								$message.= "$benutzer->nachname $benutzer->vorname hat einen neuen Zeitausgleich eingetragen:\n".
+									(!empty($zeitsperre->bezeichnung) ? $zeitsperre->bezeichnung : $zeitsperre->beschreibung).
+									" von ".$datum_obj->formatDatum($zeitsperre->vondatum,'d.m.Y').
+									" bis ".$datum_obj->formatDatum($zeitsperre->bisdatum,'d.m.Y'). "\n\n";
+								
+								$subject = $p->t('urlaubstool/zeitausgleichNeu');
+							}
+							// ...Mail-Text für geaenderten Zeitausgleich
+							else
+							{
+								$message.= "$benutzer->nachname $benutzer->vorname hat den Zeitausgleich wie folgt geändert:\n".
+									(!empty($zeitsperre->bezeichnung) ? $zeitsperre->bezeichnung : $zeitsperre->beschreibung).
+									" von ".$datum_obj->formatDatum($zeitsperre->vondatum,'d.m.Y').
+									" bis ".$datum_obj->formatDatum($zeitsperre->bisdatum,'d.m.Y'). "\n\n";
+								
+								$subject = $subject = $p->t('urlaubstool/zeitausgleichGeaendert');
+							}
+						}
+						
 						$from='vilesci@'.DOMAIN;
-						$mail = new mail($to, $from, 'Freigabeansuchen', $message);
+						$mail = new mail($to, $from, $subject, $message);
+						
 						if($mail->send())
 						{
-							echo "<br><b>".$p->t('urlaubstool/freigabemailWurdeVersandt',array($fullName))."</b>";
+							if ($zeitsperre->zeitsperretyp_kurzbz=='Urlaub')
+							{
+								echo "<br><b>". $p->t('urlaubstool/freigabemailWurdeVersandt', array($fullName)). "</b>";
+							}
+							
+							if ($zeitsperre->zeitsperretyp_kurzbz == 'ZA')
+							{
+								echo "<br><b>". $p->t('urlaubstool/VorgesetzteInformiert', array($fullName)). "</b>";
+							}
 						}
 						else
 						{
@@ -560,14 +609,25 @@ if((isset($_GET['type']) && $_GET['type']=='delete_sperre' && isset($_GET['infor
 
         $benutzer = new benutzer();
         $benutzer->load($uid);
-        $message = $p->t('urlaubstool/diesIstEineAutomatischeMail')."\n".
-            $p->t('urlaubstool/xHatUrlaubGeloescht',array($benutzer->nachname,$benutzer->vorname)).":\n";
+        $message = $p->t('urlaubstool/diesIstEineAutomatischeMail')."\n";
+	
+	    if ($zeitsperre->zeitsperretyp_kurzbz == 'Urlaub')
+	    {
+		    $message.= $p->t('urlaubstool/xHatUrlaubGeloescht', array($benutzer->nachname, $benutzer->vorname)).":\n";
+        	$message.= $p->t('urlaubstool/von'). " ". date("d.m.Y", strtotime($vondatum)). " " . $p->t('urlaubstool/bis'). " ". date("d.m.Y", strtotime($bisdatum)). "\n";
+        	
+        	$subject = $p->t('urlaubstool/freigegebenerUrlaubGeloescht');
+		}
+	
+	    if ($zeitsperre->zeitsperretyp_kurzbz == 'ZA')
+	    {
+		    $message.= $p->t('urlaubstool/xHatZeitausgleichGeloescht', array($benutzer->nachname, $benutzer->vorname)).":\n";
+		    $message.= $p->t('urlaubstool/von'). " ". date("d.m.Y", strtotime($vondatum)). " ". $p->t('urlaubstool/bis'). " ". date("d.m.Y", strtotime($bisdatum)). "\n";
+		    
+		    $subject = $p->t('urlaubstool/zeitausgleichGeloescht');
+	    }
 
-
-        $message.= $p->t('urlaubstool/von')." ".date("d.m.Y", strtotime($vondatum))." ".$p->t('urlaubstool/bis')." ".date("d.m.Y", strtotime($bisdatum))."\n";
-
-
-        $mail = new mail($to, 'vilesci@'.DOMAIN,$p->t('urlaubstool/freigegebenerUrlaubGeloescht'), $message);
+        $mail = new mail($to, 'vilesci@'.DOMAIN, $subject, $message);
         if($mail->send())
         {
             echo "<br><b>".$p->t('urlaubstool/VorgesetzteInformiert',array($fullName))."</b>";
@@ -654,7 +714,7 @@ if(count($zeit->result)>0)
 			$content_table.="<td><a href='$PHP_SELF?type=edit&id=$row->zeitsperre_id' class='Item'>".$p->t('zeitsperre/edit')."</a></td>";
 		if ($row->vondatum < $gesperrt_bis AND in_array($row->zeitsperretyp_kurzbz,$typen_arr))
 			$content_table .= '<td>&nbsp;</td>';
-		else if($row->vondatum>=date("Y-m-d",time()) && $row->zeitsperretyp_kurzbz=='Urlaub')
+		else if($row->vondatum>=date("Y-m-d",time()) && ($row->zeitsperretyp_kurzbz=='Urlaub' || $row->zeitsperretyp_kurzbz == 'ZA'))
 		{
 			$content_table.="\n<td><a href='$PHP_SELF?type=delete_sperre&id=$row->zeitsperre_id&informSupervisor=True' onclick='return conf_del()' class='Item'>".$p->t('zeitsperre/loeschen')."</a></td>";
 		}
