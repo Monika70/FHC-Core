@@ -1168,6 +1168,7 @@ if (defined("CIS_GESAMTNOTE_PRUEFUNG_MOODLE_LE_NOTE") && CIS_GESAMTNOTE_PRUEFUNG
 	$anzahlChanged = 0;
 	foreach ($grades as $uid => $data)
 	{
+		//ids für vornamen und nachnamen definieren
 		$htmlstring .= '<tr class="liste' . ($i % 2) . '">
 			<td><a href="mailto:' . $uid . '@' . DOMAIN . '"><img src="../../../../skin/images/button_mail.gif"></a></td>
 			<td>' . $db->convert_html_chars($uid) . '</td>
@@ -1419,7 +1420,7 @@ if (defined("CIS_GESAMTNOTE_PRUEFUNG_MOODLE_LE_NOTE") && CIS_GESAMTNOTE_PRUEFUNG
 					else
 						$pr_notenbezeichnung = $noten_array[$pr_note]['bezeichnung_mehrsprachig'][$sprache];
 
-					$onclick = "pruefungAnlegen('" . $uid . "','" . $pr_datum . "','" . $pr_note . "',";
+					$onclick = "('" . $uid . "','" . $pr_datum . "','" . $pr_note . "',";
 					$onclick .= "'" . $pr_le_id . "','" . $pr_punkte . "')";
 
 					$htmlstring .= '<tr>
