@@ -71,8 +71,8 @@
 			// SB Admin 2 template CSS
 			if ($sbadmintemplate === true)
 			{
-				generateCSSsInclude('vendor/BlackrockDigital/startbootstrap-sb-admin-2/vendor/metisMenu/metisMenu.min.css');
-				generateCSSsInclude('vendor/BlackrockDigital/startbootstrap-sb-admin-2/dist/css/sb-admin-2.min.css');
+				generateCSSsInclude('vendor/blackrockdigital/startbootstrap-sb-admin-2/vendor/metisMenu/metisMenu.min.css');
+				generateCSSsInclude('vendor/blackrockdigital/startbootstrap-sb-admin-2/dist/css/sb-admin-2.min.css');
 			}
 
 			// Securimage CSS
@@ -154,10 +154,10 @@
 			// SB Admin 2 template JS
 			if ($sbadmintemplate === true)
 			{
-				generateJSsInclude('vendor/BlackrockDigital/startbootstrap-sb-admin-2/vendor/metisMenu/metisMenu.min.js');
-				generateJSsInclude('vendor/BlackrockDigital/startbootstrap-sb-admin-2/dist/js/sb-admin-2.min.js');
+				generateJSsInclude('vendor/blackrockdigital/startbootstrap-sb-admin-2/vendor/metisMenu/metisMenu.min.js');
+				generateJSsInclude('vendor/blackrockdigital/startbootstrap-sb-admin-2/dist/js/sb-admin-2.min.js');
 				generateBackwardCompatibleJSMsIe('vendor/afarkas/html5shiv/dist/html5shiv.min.js');
-				generateBackwardCompatibleJSMsIe('vendor/scottjehl/Respond/dest/respond.min.js');
+				generateBackwardCompatibleJSMsIe('vendor/scottjehl/respond/dest/respond.min.js');
 			}
 
 			// Securimage JS

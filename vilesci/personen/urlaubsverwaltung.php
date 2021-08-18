@@ -70,7 +70,7 @@ echo '<html>
 		<link rel="stylesheet" href="../../skin/tablesort.css" type="text/css">
 		<link rel="stylesheet" href="../../skin/jquery-ui-1.9.2.custom.min.css" type="text/css">
 		<script src="../../include/js/tablesort/table.js" type="text/javascript"></script>
-		<script type="text/javascript" src="../../vendor/jquery/jqueryV1/jquery-1.12.4.min.js"></script>
+		<script type="text/javascript" src="../../vendor/jquery/jquery-v1/jquery-1.12.4.min.js"></script>
 		<script type="text/javascript" src="../../vendor/mottie/tablesorter/dist/js/jquery.tablesorter.min.js"></script>
 		<script type="text/javascript" src="../../vendor/mottie/tablesorter/dist/js/jquery.tablesorter.widgets.min.js"></script>
 		<script type="text/javascript" src="../../vendor/components/jqueryui/jquery-ui.min.js"></script>

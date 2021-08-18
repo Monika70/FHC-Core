@@ -11,26 +11,18 @@
 	"license": "GPLv3",
 	"authors": [
 		{
-			"name": "Christian Paminger",
-			"email": "christian.paminger@fhcomplete.org",
-			"homepage": "http://fhcomplete.org"
-		},
-		{
-			"name": "Andreas Österreicher",
-			"email": "oesi@technikum-wien.at",
-			"homepage": "http://fhcomplete.org"
+			"name": "The FH-Complete dev team",
+			"homepage": "https://www.fhcomplete.net"
 		}
 	],
 	"support": {
-		"email": "info@fhcomplete.org",
-		"forum": "https://plus.google.com/communities/113278802529782592610",
-		"wiki": "http://wiki.fhcomplete.org/"
+		"wiki": "https://wiki.fhcomplete.net/doku.php"
 	},
 	"repositories": [
 		{
 			"type": "package",
 			"package": {
-				"name": "alvaro-prieto/colResizable",
+				"name": "alvaro-prieto/colresizable",
 				"version": "1.6",
 				"dist": {
 					"url": "https://github.com/alvaro-prieto/colResizable/archive/1.6.zip",
@@ -41,7 +33,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "BlackrockDigital/startbootstrap-sb-admin-2",
+				"name": "blackrockdigital/startbootstrap-sb-admin-2",
 				"version": "3.3.7.1",
 				"dist": {
 					"url": "https://github.com/BlackrockDigital/startbootstrap-sb-admin-2/archive/v3.3.7+1.zip",
@@ -98,7 +90,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "jquery/jqueryV1",
+				"name": "jquery/jquery-v1",
 				"version": "1.12.4",
 				"dist": {
 					"type": "file",
@@ -109,7 +101,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "jquery/jqueryV2",
+				"name": "jquery/jquery-v2",
 				"version": "2.2.4",
 				"dist": {
 					"type": "file",
@@ -132,7 +124,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "json-forms",
+				"name": "brutusin/json-forms",
 				"version": "1.4.0",
 				"dist": {
 					"url": "https://github.com/brutusin/json-forms/archive/v1.4.0.zip",
@@ -143,7 +135,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "jsoneditor",
+				"name": "josdejong/jsoneditor",
 				"version": "5.5.6",
 				"dist": {
 					"url": "https://github.com/josdejong/jsoneditor/archive/v5.5.6.zip",
@@ -209,7 +201,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "scottjehl/Respond",
+				"name": "scottjehl/respond",
 				"version": "1.4.2",
 				"dist": {
 					"url": "https://github.com/scottjehl/Respond/archive/1.4.2.zip",
@@ -220,7 +212,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "tapmodo/Jcrop",
+				"name": "tapmodo/jcrop",
 				"version": "2.0.4",
 				"dist": {
 					"url": "https://github.com/tapmodo/Jcrop/archive/v2.0.4.zip",
@@ -231,7 +223,7 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "tomazdragar/SimpleCropper",
+				"name": "tomazdragar/simplecropper",
 				"version": "1.0",
 				"source": {
 					"url": "https://github.com/tomazdragar/SimpleCropper.git",
@@ -258,8 +250,6 @@
 
 		"easyrdf/easyrdf": "0.9.*",
 
-		"fzaninotto/faker": "1.*",
-
 		"kingsquare/json-schema-form": "*",
 
 		"michelf/php-markdown": "1.5.0",
@@ -275,26 +265,21 @@
 
 		"twbs/bootstrap": "3.4.*",
 
-		"zetacomponents/workflow": "1.*",
-		"zetacomponents/document": "1.*",
-		"zetacomponents/workflow-database-tiein": "1.*",
-		"zetacomponents/workflow-event-log-tiein": "1.*",
 
+		"alvaro-prieto/colresizable": "1.6",
 
-		"alvaro-prieto/colResizable": "1.6",
-
-		"BlackrockDigital/startbootstrap-sb-admin-2": "3.3.*",
+		"blackrockdigital/startbootstrap-sb-admin-2": "3.3.*",
 		"borgar/textile-js": "2.0.4",
 
 		"fgelinas/timepicker": "0.3.3",
 
 		"joeldbirch/superfish": "1.7.*",
-		"jquery/jqueryV1": "1.*",
-		"jquery/jqueryV2": "2.*",
+		"jquery/jquery-v1": "1.*",
+		"jquery/jquery-v2": "2.*",
 		"jquery/sizzle": "1.0.*",
 		"jquery-archive/jquery-metadata": "1.0.*",
-		"json-forms": "1.4.0",
-		"jsoneditor": "5.5.6",
+		"brutusin/json-forms": "1.4.0",
+		"josdejong/jsoneditor": "5.5.6",
 
 		"ludo/jquery-treetable": "3.2.0",
 
@@ -306,12 +291,13 @@
 
 		"rmariuzzo/jquery-checkboxes": "1.0.7",
 
-		"scottjehl/Respond": "1.4.2",
+		"scottjehl/respond": "1.4.2",
 
-		"tapmodo/Jcrop": "2.0.4",
-		"tomazdragar/SimpleCropper": "1.0"
+		"tapmodo/jcrop": "2.0.4",
+		"tomazdragar/simplecropper": "1.0"
 	},
 	"config": {
 		"bin-dir": "vendor/bin"
 	}
 }
+
